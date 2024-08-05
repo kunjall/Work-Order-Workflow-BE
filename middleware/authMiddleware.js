@@ -4,10 +4,10 @@ const { invalidatedTokens } = require("../controllers/login");
 const authenticateUser = async (req, res, next) => {
   const authHeader = req.header("Authorization");
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!authHeader) {
     return res.status(401).json({ error: "Unauthorized: Missing token" });
   }
-  const token = authHeader.replace("Bearer ", "");
+  const token = authHeader;
 
   try {
     if (invalidatedTokens.has(token)) {
