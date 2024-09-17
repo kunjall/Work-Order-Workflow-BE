@@ -5,6 +5,7 @@ const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const workorderRoutes = require("./routes/workorderRoutes");
+const masterRoutes = require("./routes/masterRoutes");
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use("/", userRoutes);
 app.use("/", customerRoutes);
 app.use("/", workorderRoutes);
+app.use("/", masterRoutes);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`server running on port ${PORT}`);

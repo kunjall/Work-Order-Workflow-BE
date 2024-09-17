@@ -51,38 +51,6 @@ const Workorder = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true, // Adjust according to your requirements
     },
-    plan_recieved: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true, // Adjust according to your requirements
-    },
-    survey_customer: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true, // Adjust according to your requirements
-    },
-    feasible: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true, // Adjust according to your requirements
-    },
-    informed_customer_email_date: {
-      type: DataTypes.DATEONLY,
-      allowNull: true, // Adjust according to your requirements
-    },
-    plan_recieved_date: {
-      type: DataTypes.DATEONLY,
-      allowNull: true, // Adjust according to your requirements
-    },
-    date_of_survey: {
-      type: DataTypes.DATEONLY,
-      allowNull: true, // Adjust according to your requirements
-    },
-    reason_if_not_feasible: {
-      type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
-    },
-    remarks: {
-      type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
-    },
     created_by: {
       type: DataTypes.STRING,
       allowNull: true,
