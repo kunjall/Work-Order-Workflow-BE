@@ -3,7 +3,6 @@ require("dotenv").config();
 require("./utils/db");
 const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
-const customerRoutes = require("./routes/customerRoutes");
 const workorderRoutes = require("./routes/workorderRoutes");
 const masterRoutes = require("./routes/masterRoutes");
 
@@ -14,7 +13,6 @@ const PORT = process.env.PORT || 4000;
 
 app.use(express.json());
 app.use("/", userRoutes);
-app.use("/", customerRoutes);
 app.use("/", workorderRoutes);
 app.use("/", masterRoutes);
 

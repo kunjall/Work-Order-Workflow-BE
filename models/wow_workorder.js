@@ -91,6 +91,14 @@ const Workorder = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    vendor_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    total_service_cost: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "wow-workorder",

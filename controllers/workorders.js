@@ -1,4 +1,6 @@
 const { Workorder } = require("../models/wow_workorder");
+const { MaterialRecord } = require("../models/wow_material_record");
+const { ServiceRecord } = require("../models/wow_service_record");
 
 const create = async (req, res) => {
   try {
@@ -21,6 +23,8 @@ const create = async (req, res) => {
       customer_approval_date,
       created_by,
       created_at,
+      total_service_cost,
+      vendor_name,
     } = req.body;
 
     if (
@@ -63,6 +67,8 @@ const create = async (req, res) => {
       customer_approval_date,
       created_by,
       created_at,
+      total_service_cost,
+      vendor_name,
     });
     res.status(201).json({
       message: "Work order created successfully",
@@ -87,4 +93,62 @@ const findWorkorder = async (req, res) => {
   }
 };
 
-module.exports = { create, findWorkorder };
+const enterMaterial = async (req, res) => {
+  const {
+    record_id,
+    workorder_id,
+    material_id,
+    material_desc,
+    material_uom,
+    material_wo_qty,
+  } = req.body;
+
+  try {
+    // Create a new material record
+    await MaterialRecord.create({
+      record_id,
+      workorder_id,
+      material_id,
+      material_desc,
+      material_uom,
+      material_wo_qty,
+    });
+
+    res.status(201).json("Success");
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const enterServices = async (req, res) => {
+  const {
+    record_id,
+    workorder_id,
+    service_id,
+    service_desc,
+    service_uom,
+    service_wo_qty,
+    service_price,
+  } = req.body;
+
+  try {
+    // Create a new material record
+    await ServiceRecord.create({
+      record_id,
+      workorder_id,
+      service_id,
+      service_desc,
+      service_uom,
+      service_wo_qty,
+      service_price,
+    });
+
+    res.status(201).json("Success");
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+module.exports = { create, findWorkorder, enterMaterial, enterServices };

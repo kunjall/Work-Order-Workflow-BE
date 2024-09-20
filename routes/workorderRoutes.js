@@ -9,5 +9,15 @@ router.get(
   authenticateUser,
   workorderController.findWorkorder
 );
+router.post(
+  "/workorder/enterMaterial",
+  authenticateUser,
+  workorderController.enterMaterial
+);
+router.post(
+  "/workorder/enterServices",
+  authenticateUser,
+  workorderController.enterServices
+);
 
 module.exports = router;

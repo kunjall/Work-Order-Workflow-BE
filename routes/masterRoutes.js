@@ -4,9 +4,26 @@ const masterController = require("../controllers/master.js");
 const authenticateUser = require("../middleware/authMiddleware.js");
 
 router.get(
+  "/master/findCustomer",
+  authenticateUser,
+  masterController.findCustomer
+);
+router.get("/master/findCity", authenticateUser, masterController.findCity);
+
+router.get(
   "/master/find-material",
   authenticateUser,
   masterController.findMaterial
+);
+router.get(
+  "/master/find-service",
+  authenticateUser,
+  masterController.findServices
+);
+router.get(
+  "/master/find-vendors",
+  authenticateUser,
+  masterController.findVendors
 );
 
 module.exports = router;
