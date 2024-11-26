@@ -43,6 +43,10 @@ const ServiceRecord = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    vendor_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "wow-service-record",

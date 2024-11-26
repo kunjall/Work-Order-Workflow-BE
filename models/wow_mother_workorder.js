@@ -11,13 +11,13 @@ const sequelize = new Sequelize(
   }
 );
 
-const Workorder = sequelize.define(
-  "Workorder",
+const MotherWorkorder = sequelize.define(
+  "MotherWorkorder",
   {
     workorder_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       primaryKey: true,
-      autoIncrement: true,
+      allowNull: false,
     },
     workorder_type: {
       type: DataTypes.STRING,
@@ -79,10 +79,6 @@ const Workorder = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    internal_project_manager: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     customer_name: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -91,23 +87,15 @@ const Workorder = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    vendor_name: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    total_service_cost: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
   },
   {
-    tableName: "wow-workorder",
+    tableName: "wow-mother-workorder",
     schema: "WOW",
-    timestamps: false, // Adjust if you are using timestamps
+    timestamps: false,
   }
 );
 
 module.exports = {
   sequelize,
-  Workorder,
+  MotherWorkorder,
 };

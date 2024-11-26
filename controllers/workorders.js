@@ -1,10 +1,12 @@
-const { Workorder } = require("../models/wow_workorder");
+const { MotherWorkorder } = require("../models/wow_mother_workorder");
 const { MaterialRecord } = require("../models/wow_material_record");
 const { ServiceRecord } = require("../models/wow_service_record");
+const { ChildWorkorder } = require("../models/wow_child_workorder");
 
 const create = async (req, res) => {
   try {
     const {
+      workorder_id,
       workorder_type,
       workorder_number,
       workorder_status,
@@ -17,14 +19,11 @@ const create = async (req, res) => {
       customer_id,
       execution_city,
       customer_project_manager,
-      internal_project_manager,
       customer_name,
       customer_state,
       customer_approval_date,
       created_by,
       created_at,
-      total_service_cost,
-      vendor_name,
     } = req.body;
 
     if (
@@ -39,7 +38,6 @@ const create = async (req, res) => {
       !type ||
       !customer_id ||
       !customer_project_manager ||
-      !internal_project_manager ||
       !customer_name ||
       !customer_state ||
       !execution_city ||
@@ -48,7 +46,8 @@ const create = async (req, res) => {
       console.log("yes");
       return res.status(400).json({ message: "All fields are required" });
     }
-    const newWorkorder = await Workorder.create({
+    const newWorkorder = await MotherWorkorder.create({
+      workorder_id,
       workorder_type,
       workorder_number,
       workorder_status,
@@ -61,14 +60,11 @@ const create = async (req, res) => {
       customer_id,
       execution_city,
       customer_project_manager,
-      internal_project_manager,
       customer_name,
       customer_state,
       customer_approval_date,
       created_by,
       created_at,
-      total_service_cost,
-      vendor_name,
     });
     res.status(201).json({
       message: "Work order created successfully",
@@ -84,9 +80,48 @@ const create = async (req, res) => {
 
 const findWorkorder = async (req, res) => {
   try {
-    const foundWorkorder = await Workorder.findAll();
-    console.log(foundWorkorder);
+    const foundWorkorder = await MotherWorkorder.findAll();
     res.json(foundWorkorder);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const findChildWorkorder = async (req, res) => {
+  try {
+    const foundChildWorkorder = await ChildWorkorder.findAll();
+    res.json(foundChildWorkorder);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+const findChildServices = async (req, res) => {
+  try {
+    const { workorder_id } = req.query; // Extract workorder_id from the query
+    console.log(workorder_id);
+    const foundChildServices = await ServiceRecord.findAll({
+      where: { workorder_id: workorder_id },
+      // Filter based on workorder_id
+      logging: console.log,
+    });
+    res.json(foundChildServices);
+    console.log(foundChildServices);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const findChildMaterials = async (req, res) => {
+  try {
+    const { workorder_id } = req.query; // Extract workorder_id from the query
+    const foundChildMaterials = await MaterialRecord.findAll({
+      where: { workorder_id: workorder_id }, // Filter based on workorder_id
+      logging: console.log,
+    });
+    res.json(foundChildMaterials);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -101,6 +136,7 @@ const enterMaterial = async (req, res) => {
     material_desc,
     material_uom,
     material_wo_qty,
+    vendor_id,
   } = req.body;
 
   try {
@@ -112,6 +148,7 @@ const enterMaterial = async (req, res) => {
       material_desc,
       material_uom,
       material_wo_qty,
+      vendor_id,
     });
 
     res.status(201).json("Success");
@@ -130,6 +167,7 @@ const enterServices = async (req, res) => {
     service_uom,
     service_wo_qty,
     service_price,
+    vendor_id,
   } = req.body;
 
   try {
@@ -142,6 +180,7 @@ const enterServices = async (req, res) => {
       service_uom,
       service_wo_qty,
       service_price,
+      vendor_id,
     });
 
     res.status(201).json("Success");
@@ -151,4 +190,37 @@ const enterServices = async (req, res) => {
   }
 };
 
-module.exports = { create, findWorkorder, enterMaterial, enterServices };
+const createChildWorkorder = async (req, res) => {
+  const {
+    workorder_id,
+    vendor_id,
+    vendor_route_allocation,
+    total_service_cost,
+    internal_manager,
+  } = req.body;
+
+  try {
+    await ChildWorkorder.create({
+      workorder_id,
+      vendor_id,
+      vendor_route_allocation,
+      total_service_cost,
+      internal_manager,
+    });
+    res.status(201).json("Success");
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+module.exports = {
+  create,
+  findWorkorder,
+  findChildMaterials,
+  findChildServices,
+  findChildWorkorder,
+  enterMaterial,
+  enterServices,
+  createChildWorkorder,
+};
