@@ -11,33 +11,29 @@ const sequelize = new Sequelize(
   }
 );
 
-const ServicesMaster = sequelize.define(
-  "ServicesMaster",
+const MaterialsMaster = sequelize.define(
+  "MaterialsMaster",
   {
-    service_id: {
+    item_id: {
       type: DataTypes.STRING,
       allowNull: false,
       primaryKey: true,
     },
-    service_description: {
+    item_name: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    service_UOM: {
+    item_uom: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    service_rate: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_company: {
+    item_company: {
       type: DataTypes.STRING,
       allowNull: true,
     },
   },
   {
-    tableName: "wow-services-line-items-master",
+    tableName: "wow-material-master",
     schema: "WOW",
     timestamps: false,
   }
@@ -45,5 +41,5 @@ const ServicesMaster = sequelize.define(
 
 module.exports = {
   sequelize,
-  ServicesMaster,
+  MaterialsMaster,
 };

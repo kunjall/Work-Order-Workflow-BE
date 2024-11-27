@@ -11,29 +11,21 @@ const sequelize = new Sequelize(
   }
 );
 
-const MaterialsMaster = sequelize.define(
-  "MaterialsMaster",
+const WarehouseMaster = sequelize.define(
+  "WarehouseMaster",
   {
-    item_id: {
+    warehouse_id: {
       type: DataTypes.STRING,
       allowNull: false,
       primaryKey: true,
     },
-    item_name: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    item_uom: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    item_company: {
+    warehouse_city: {
       type: DataTypes.STRING,
       allowNull: true,
     },
   },
   {
-    tableName: "wow-material-line-items-master",
+    tableName: "wow-warehouse-master",
     schema: "WOW",
     timestamps: false,
   }
@@ -41,5 +33,5 @@ const MaterialsMaster = sequelize.define(
 
 module.exports = {
   sequelize,
-  MaterialsMaster,
+  WarehouseMaster,
 };

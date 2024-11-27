@@ -26,4 +26,16 @@ router.get(
   masterController.findVendors
 );
 
+router.get(
+  "/master/find-warehouse",
+  authenticateUser,
+  masterController.findWarehouses
+);
+
+router.get(
+  "/master/find-client-warehouse",
+  authenticateUser,
+  masterController.findClientWarehouses
+);
+
 module.exports = router;
