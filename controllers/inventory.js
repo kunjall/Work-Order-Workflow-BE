@@ -1,5 +1,7 @@
 const { MaterialInventory } = require("../models/wow_material_inventory.js");
 const { InventoryInward } = require("../models/wow_inventory_inward");
+const { where } = require("sequelize");
+const { Op } = require("sequelize");
 
 const enterInventory = async (req, res) => {
   const {
@@ -15,6 +17,11 @@ const enterInventory = async (req, res) => {
     mrs_date,
     client_warehouse_id,
     client_warehouse_city,
+    inventory_inward_status,
+    created_by,
+    created_at,
+    inventory_reviewer_name,
+    inventory_reviewer_email,
   } = req.body;
 
   try {
@@ -33,6 +40,11 @@ const enterInventory = async (req, res) => {
         mrs_date,
         client_warehouse_id,
         client_warehouse_city,
+        inventory_inward_status,
+        inventory_reviewer_name,
+        inventory_reviewer_email,
+        created_by,
+        created_at,
       },
       { logging: console.log }
     );
@@ -72,7 +84,52 @@ const enterInventoryMaterial = async (req, res) => {
   }
 };
 
+const getInventoryInwardReciever = async (req, res) => {
+  try {
+    const user = req.query.user;
+    const inventorystatus = req.query.inventorystatus;
+
+    // Input validation
+    if (!user || !inventorystatus) {
+      return res
+        .status(400)
+        .json({ message: "User and inventory status are required." });
+    }
+    // Fetch inventory data
+    const foundInventory = await InventoryInward.findAll({
+      where: {
+        [Op.or]: [
+          {
+            [Op.and]: [
+              { inventory_reviewer_email: user },
+              { inventory_inward_status: inventorystatus },
+            ],
+          },
+          {
+            [Op.and]: [
+              { inventory_approver_email: user },
+              { inventory_inward_status: inventorystatus },
+            ],
+          },
+        ],
+      },
+    });
+
+    // Check if data was found
+    if (foundInventory.length === 0) {
+      return res.status(404).json({ message: "No inventory records found." });
+    }
+
+    // Return found data
+    res.json(foundInventory);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   enterInventoryMaterial,
   enterInventory,
+  getInventoryInwardReciever,
 };

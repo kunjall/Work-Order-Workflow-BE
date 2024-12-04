@@ -9,6 +9,12 @@ router.post(
   inventoryController.enterInventory
 );
 
+router.get(
+  "/inventory/get-inventory-reciever",
+  authenticateUser,
+  inventoryController.getInventoryInwardReciever
+);
+
 router.post(
   "/inventory/enterMaterial",
   authenticateUser,

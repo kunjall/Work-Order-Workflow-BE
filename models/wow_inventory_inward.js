@@ -14,10 +14,17 @@ const sequelize = new Sequelize(
 const InventoryInward = sequelize.define(
   "InventoryInward",
   {
+    inventory_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      allowNull: false,
+      autoIncrement: true,
+      field: "inventory_id", // Corresponds to the database column name
+    },
     customer_dc_number: {
       type: DataTypes.STRING,
       allowNull: false,
-      primaryKey: true, // This field is the primary key
+      field: "customer_dc_number",
     },
     customer_id: {
       type: DataTypes.STRING,
@@ -60,6 +67,50 @@ const InventoryInward = sequelize.define(
       allowNull: true, // Optional, as this column allows NULL
     },
     client_warehouse_city: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    inventory_inward_status: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    inventory_approver_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    inventory_reviewer_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    inventory_reviewer_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    inventory_approver_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    created_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    created_at: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    approved_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    approved_at: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    reviewed_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    reviewed_at: {
       type: DataTypes.STRING,
       allowNull: true,
     },

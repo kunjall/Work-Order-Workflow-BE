@@ -6,6 +6,7 @@ const userRoutes = require("./routes/userRoutes");
 const workorderRoutes = require("./routes/workorderRoutes");
 const masterRoutes = require("./routes/masterRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
+const approvalRoutes = require("./routes/approverRoutes");
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/", userRoutes);
 app.use("/", workorderRoutes);
 app.use("/", masterRoutes);
 app.use("/", inventoryRoutes);
+app.use("/", approvalRoutes);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`server running on port ${PORT}`);
