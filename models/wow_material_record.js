@@ -19,6 +19,7 @@ const MaterialRecord = sequelize.define(
       primaryKey: true,
       allowNull: false,
     },
+
     workorder_id: {
       type: DataTypes.STRING,
       allowNull: true,

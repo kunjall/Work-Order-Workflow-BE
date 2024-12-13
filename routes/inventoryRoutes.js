@@ -10,15 +10,27 @@ router.post(
 );
 
 router.get(
-  "/inventory/get-inventory-reciever",
+  "/inventory/get-inventory-receiver",
   authenticateUser,
   inventoryController.getInventoryInwardReciever
+);
+
+router.get(
+  "/inventory/get-inventory-materials",
+  authenticateUser,
+  inventoryController.getInventoryMaterial
 );
 
 router.post(
   "/inventory/enterMaterial",
   authenticateUser,
   inventoryController.enterInventoryMaterial
+);
+
+router.patch(
+  "/inventory/updateReceived",
+  authenticateUser,
+  inventoryController.updateReceivedDetails
 );
 
 module.exports = router;

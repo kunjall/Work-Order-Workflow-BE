@@ -78,11 +78,11 @@ const InventoryInward = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    inventory_reviewer_email: {
+    inventory_receiver_email: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    inventory_reviewer_name: {
+    inventory_receiver_name: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -106,11 +106,19 @@ const InventoryInward = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    reviewed_by: {
+    received_by: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    reviewed_at: {
+    received_at: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    receiver_comments: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    approver_comments: {
       type: DataTypes.STRING,
       allowNull: true,
     },
