@@ -18,7 +18,13 @@ router.get(
 router.get(
   "/inventory/get-inventory-materials",
   authenticateUser,
-  inventoryController.getInventoryMaterial
+  inventoryController.getInventoryMaterialInventory
+);
+
+router.get(
+  "/inventory/get-all-inventory-materials",
+  authenticateUser,
+  inventoryController.getAllInventoryMaterial
 );
 
 router.post(
@@ -31,6 +37,12 @@ router.patch(
   "/inventory/updateReceived",
   authenticateUser,
   inventoryController.updateReceivedDetails
+);
+
+router.patch(
+  "/inventory/updateApproved",
+  authenticateUser,
+  inventoryController.updateApprovedDetails
 );
 
 module.exports = router;

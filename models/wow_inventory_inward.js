@@ -19,7 +19,7 @@ const InventoryInward = sequelize.define(
       primaryKey: true,
       allowNull: false,
       autoIncrement: true,
-      field: "inventory_id", // Corresponds to the database column name
+      field: "inventory_id",
     },
     customer_dc_number: {
       type: DataTypes.STRING,

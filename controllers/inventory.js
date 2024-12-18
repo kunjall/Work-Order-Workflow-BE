@@ -2,6 +2,18 @@ const { MaterialInventory } = require("../models/wow_material_inventory.js");
 const { InventoryInward } = require("../models/wow_inventory_inward");
 const { where } = require("sequelize");
 const { Op } = require("sequelize");
+const { Sequelize } = require("sequelize");
+const sequelize = new Sequelize(
+  process.env.DB_DATABASE,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST,
+    dialect: "postgres",
+    logging: false,
+  }
+);
+// require("../models/associations.js");
 
 const enterInventory = async (req, res) => {
   const {
@@ -86,6 +98,39 @@ const enterInventoryMaterial = async (req, res) => {
   }
 };
 
+// const getInventoryInwardReciever = async (req, res) => {
+//   try {
+//     const user = req.query.user;
+//     const inventorystatus = req.query.inventorystatus;
+
+//     // Input validation
+//     if (!user || !inventorystatus) {
+//       return res
+//         .status(400)
+//         .json({ message: "User and inventory status are required." });
+//     }
+
+//     // Define the raw SQL query with a LEFT JOIN
+//     // Execute the query
+//     const [results, metadata] = await sequelize.query(`
+//       SELECT a.*, b.*
+//       FROM "WOW"."wow-inventory-inward" a
+//       LEFT JOIN "WOW"."wow-material-inventory" b ON a.inventory_id = b.inventory_id
+//       WHERE a.inventory_inward_status = '${inventorystatus}'
+//       AND (a.inventory_receiver_email = '${user}' OR a.inventory_approver_email = '${user}' OR a.created_by = '${user}');
+//     `);
+//     // Return the data
+//     if (results.length === 0) {
+//       return res.status(200).json({ message: "No inventory found." });
+//     }
+
+//     res.status(200).json(results);
+//   } catch (error) {
+//     console.error("Error fetching inventory:", error);
+//     res.status(500).json({ message: "Internal server error." });
+//   }
+// };
+
 const getInventoryInwardReciever = async (req, res) => {
   try {
     const user = req.query.user;
@@ -97,40 +142,34 @@ const getInventoryInwardReciever = async (req, res) => {
         .status(400)
         .json({ message: "User and inventory status are required." });
     }
+
+    // Define filter conditions based on inventory status
+    const whereCondition = {
+      inventory_inward_status: inventorystatus,
+      [Op.or]: [
+        { inventory_receiver_email: user },
+        { inventory_approver_email: user },
+        { created_by: user },
+      ],
+    };
+
     // Fetch inventory data
     const foundInventory = await InventoryInward.findAll({
-      where: {
-        [Op.or]: [
-          {
-            [Op.and]: [
-              { inventory_receiver_email: user },
-              { inventory_inward_status: inventorystatus },
-            ],
-          },
-          {
-            [Op.and]: [
-              { inventory_approver_email: user },
-              { inventory_inward_status: inventorystatus },
-            ],
-          },
-        ],
-      },
+      where: whereCondition,
     });
 
-    // Check if data was found
-    if (foundInventory.length === 0) {
-      return res.status(200).json({ message: "No inventory records found." });
+    // Return the data
+    if (!foundInventory || foundInventory.length === 0) {
+      return res.status(200).json({ message: "No inventory found." });
     }
 
-    // Return found data
-    res.json(foundInventory);
+    res.status(200).json(foundInventory);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error fetching inventory:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 };
-
-const getInventoryMaterial = async (req, res) => {
+const getInventoryMaterialInventory = async (req, res) => {
   try {
     const inventory_id = req.query.inventory_id;
 
@@ -145,6 +184,23 @@ const getInventoryMaterial = async (req, res) => {
         inventory_id: inventory_id,
       },
     });
+
+    if (foundInventoryMaterial.length === 0) {
+      return res.status(200).json({ message: "No material records found." });
+    }
+
+    res.json(foundInventoryMaterial);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const getAllInventoryMaterial = async (req, res) => {
+  try {
+    // Input validation
+
+    const foundInventoryMaterial = await MaterialInventory.findAll();
 
     if (foundInventoryMaterial.length === 0) {
       return res.status(200).json({ message: "No material records found." });
@@ -199,10 +255,50 @@ const updateReceivedDetails = async (req, res) => {
   }
 };
 
+const updateApprovedDetails = async (req, res) => {
+  try {
+    const {
+      inventory_id,
+      inventory_inward_status,
+      approved_at,
+      approved_by,
+      approver_comments,
+    } = req.body;
+
+    if (!inventory_id) {
+      return res.status(400).json({ message: "Inventory ID is required" });
+    }
+
+    const result = await InventoryInward.update(
+      {
+        inventory_inward_status,
+        approved_at,
+        approved_by,
+        approver_comments,
+      },
+      {
+        where: { inventory_id },
+      }
+    );
+
+    if (result[0] === 0) {
+      // No rows updated
+      return res.status(404).json({ message: "Inventory record not found" });
+    }
+
+    res.status(200).json({ message: "Success" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   enterInventoryMaterial,
   enterInventory,
   getInventoryInwardReciever,
-  getInventoryMaterial,
+  getInventoryMaterialInventory,
+  getAllInventoryMaterial,
   updateReceivedDetails,
+  updateApprovedDetails,
 };

@@ -21,7 +21,8 @@ const MaterialInventory = sequelize.define(
     },
     inventory_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
+      field: "inventory_id",
     },
     customer_dc_number: {
       type: DataTypes.STRING,
