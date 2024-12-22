@@ -28,6 +28,25 @@ const findCity = async (req, res) => {
   }
 };
 
+const findLocator = async (req, res) => {
+  try {
+    const city = req.query.city;
+    const manager = req.query.manager;
+    const type = req.query.manager;
+    const foundMapping = await CityProject.findAll({
+      where: {
+        manager_name: manager,
+        city_name: city,
+        type: type,
+      },
+    });
+    res.json(foundMapping);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 const findMaterial = async (req, res) => {
   try {
     const company = req.query.company;

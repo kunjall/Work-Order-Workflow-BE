@@ -14,7 +14,19 @@ const sequelize = new Sequelize(
 const ChildWorkorder = sequelize.define(
   "ChildWorkorder",
   {
-    workorder_id: {
+    cwo_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      allowNull: false,
+      autoIncrement: true,
+      field: "cwo_id",
+    },
+    cwo_number: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      primaryKey: true,
+    },
+    mwo_number: {
       type: DataTypes.STRING,
       allowNull: false,
       primaryKey: true, // NULL is allowed according to your table definition
@@ -34,6 +46,18 @@ const ChildWorkorder = sequelize.define(
     internal_manager: {
       type: DataTypes.STRING,
       allowNull: true, // NULL is allowed according to your table definition
+    },
+    execution_city: {
+      type: DataTypes.STRING,
+      allowNull: true, // NULL is allowed according to your table definition
+    },
+    workorder_type: {
+      type: DataTypes.STRING,
+      allowNull: true, // NULL is allowed according to your table definition
+    },
+    total_material_cost: {
+      type: DataTypes.DECIMAL, // Matches the numeric type in the table
+      allowNull: true,
     },
   },
   {

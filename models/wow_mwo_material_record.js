@@ -11,18 +11,13 @@ const sequelize = new Sequelize(
   }
 );
 
-const MaterialRecord = sequelize.define(
-  "MaterialRecord",
+const MotherMaterialRecord = sequelize.define(
+  "MotherMaterialRecord",
   {
     record_id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
-    },
-
-    workorder_id: {
-      type: DataTypes.STRING,
-      allowNull: true,
     },
     material_id: {
       type: DataTypes.STRING,
@@ -40,13 +35,29 @@ const MaterialRecord = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    vendor_id: {
+    material_bal_qty: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mwo_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    mwo_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    material_price: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    material_rate: {
       type: DataTypes.STRING,
       allowNull: true,
     },
   },
   {
-    tableName: "wow-material-record",
+    tableName: "wow-mwo-material-record",
     schema: "WOW",
     timestamps: false,
   }
@@ -54,5 +65,5 @@ const MaterialRecord = sequelize.define(
 
 module.exports = {
   sequelize,
-  MaterialRecord,
+  MotherMaterialRecord,
 };

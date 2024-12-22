@@ -19,7 +19,7 @@ const ServiceRecord = sequelize.define(
       primaryKey: true,
       allowNull: false,
     },
-    workorder_id: {
+    mwo_number: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -35,6 +35,10 @@ const ServiceRecord = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    service_bal_qty: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     service_wo_qty: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -43,13 +47,25 @@ const ServiceRecord = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    service_rate: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     vendor_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    cwo_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    cwo_number: {
       type: DataTypes.STRING,
       allowNull: true,
     },
   },
   {
-    tableName: "wow-service-record",
+    tableName: "wow-cwo-service-record",
     schema: "WOW",
     timestamps: false,
   }

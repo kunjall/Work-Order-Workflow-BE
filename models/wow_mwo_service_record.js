@@ -11,33 +11,53 @@ const sequelize = new Sequelize(
   }
 );
 
-const MaterialsMaster = sequelize.define(
-  "MaterialsMaster",
+const MotherServiceRecord = sequelize.define(
+  "MotherServiceRecord",
   {
-    item_id: {
+    record_id: {
       type: DataTypes.STRING,
-      allowNull: false,
       primaryKey: true,
+      allowNull: false,
     },
-    item_name: {
+    service_id: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    item_uom: {
+    service_desc: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    item_company: {
+    service_uom: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    item_rate: {
+    service_wo_qty: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    service_bal_qty: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    service_price: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    service_rate: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mwo_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    mwo_number: {
       type: DataTypes.STRING,
       allowNull: true,
     },
   },
   {
-    tableName: "wow-material-master",
+    tableName: "wow-mwo-service-record",
     schema: "WOW",
     timestamps: false,
   }
@@ -45,5 +65,5 @@ const MaterialsMaster = sequelize.define(
 
 module.exports = {
   sequelize,
-  MaterialsMaster,
+  MotherServiceRecord,
 };

@@ -14,7 +14,14 @@ const sequelize = new Sequelize(
 const MotherWorkorder = sequelize.define(
   "MotherWorkorder",
   {
-    workorder_id: {
+    mwo_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      allowNull: false,
+      autoIncrement: true,
+      field: "mwo_id",
+    },
+    mwo_number: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
@@ -27,10 +34,7 @@ const MotherWorkorder = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true, // Adjust according to your requirements
     },
-    workorder_number: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+
     gis_code: {
       type: DataTypes.STRING,
       allowNull: true, // Adjust according to your requirements
@@ -82,6 +86,14 @@ const MotherWorkorder = sequelize.define(
     customer_name: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    total_service_cost: {
+      type: DataTypes.DECIMAL, // Matches the numeric type in the table
+      allowNull: true, // NULL is allowed according to your table definition
+    },
+    total_material_cost: {
+      type: DataTypes.DECIMAL, // Matches the numeric type in the table
+      allowNull: true, // NULL is allowed according to your table definition
     },
     customer_state: {
       type: DataTypes.STRING,

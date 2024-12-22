@@ -28,15 +28,27 @@ router.get(
   workorderController.findChildMaterials
 );
 
-router.post(
-  "/workorder/enterMaterial",
+router.get(
+  "/workorder/find-mother-services",
   authenticateUser,
-  workorderController.enterMaterial
+  workorderController.findMotherServices
+);
+
+router.get(
+  "/workorder/find-mother-material",
+  authenticateUser,
+  workorderController.findMotherMaterials
+);
+
+router.post(
+  "/workorder/motherEnterMaterial",
+  authenticateUser,
+  workorderController.motherEnterMaterial
 );
 router.post(
-  "/workorder/enterServices",
+  "/workorder/motherEnterServices",
   authenticateUser,
-  workorderController.enterServices
+  workorderController.motherEnterServices
 );
 
 router.post(

@@ -27,6 +27,18 @@ const CityProject = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    manager_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    locator: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    type: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "wow-city-project-mapping",
