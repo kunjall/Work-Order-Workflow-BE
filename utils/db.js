@@ -18,6 +18,7 @@ const sequelize = new Sequelize(
     logging: false,
   }
 );
+
 connString
   .connect()
   .then(() => {
@@ -27,4 +28,4 @@ connString
     console.error("Error connecting to PostgreSQL database", err);
   });
 
-module.exports = sequelize;
+module.exports = { sequelize };

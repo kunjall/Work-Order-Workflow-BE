@@ -26,6 +26,11 @@ const ChildWorkorder = sequelize.define(
       allowNull: false,
       primaryKey: true,
     },
+    mwo_id: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      primaryKey: true,
+    },
     mwo_number: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -57,6 +62,42 @@ const ChildWorkorder = sequelize.define(
     },
     total_material_cost: {
       type: DataTypes.DECIMAL, // Matches the numeric type in the table
+      allowNull: true,
+    },
+    cwo_status: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    customer_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    cwo_approver_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    cwo_approver_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    approved_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    approved_at: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    approver_comments: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    created_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    created_at: {
+      type: DataTypes.DATE, // Changed from STRING to DATE
       allowNull: true,
     },
   },

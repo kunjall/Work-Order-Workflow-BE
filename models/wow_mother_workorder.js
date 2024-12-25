@@ -63,7 +63,7 @@ const MotherWorkorder = sequelize.define(
       type: DataTypes.DATE, // Changed from STRING to DATE
       allowNull: true,
     },
-    workorder_status: {
+    mwo_status: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -96,6 +96,26 @@ const MotherWorkorder = sequelize.define(
       allowNull: true, // NULL is allowed according to your table definition
     },
     customer_state: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mwo_approver_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mwo_approver_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    approved_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    approved_at: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    approver_comments: {
       type: DataTypes.STRING,
       allowNull: true,
     },

@@ -1,7 +1,6 @@
 const express = require("express");
 require("dotenv").config();
 require("./utils/db");
-// require("./models/associations");
 const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
 const workorderRoutes = require("./routes/workorderRoutes");
