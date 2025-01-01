@@ -23,6 +23,10 @@ const MaterialRecord = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    mwo_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     material_id: {
       type: DataTypes.STRING,
       allowNull: true,

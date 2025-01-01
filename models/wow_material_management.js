@@ -11,111 +11,28 @@ const sequelize = new Sequelize(
   }
 );
 
-const MotherWorkorder = sequelize.define(
-  "MotherWorkorder",
+const MaterialManagement = sequelize.define(
+  "MaterialManagement",
   {
-    mwo_id: {
+    mm_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       allowNull: false,
       autoIncrement: true,
-      field: "mwo_id",
     },
-    mwo_number: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false,
-    },
-    workorder_type: {
+    warehouse_id: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    customer_id: {
-      type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
-    },
-
-    gis_code: {
-      type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
-    },
-    route_name: {
-      type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
-    },
-    homepass_count: {
-      type: DataTypes.BIGINT,
-      allowNull: true, // Adjust according to your requirements
-    },
-    activity: {
-      type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
-    },
-    type: {
-      type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
-    },
-    created_by: {
+    tps_pm: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    created_at: {
-      type: DataTypes.DATE, // Changed from STRING to DATE
-      allowNull: true,
-    },
-    mwo_status: {
+    vendor_name: {
       type: DataTypes.STRING,
-      allowNull: true,
-    },
-    route_length: {
-      type: DataTypes.BIGINT,
       allowNull: true,
     },
     execution_city: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    customer_approval_date: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
-    customer_project_manager: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    customer_name: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    total_service_cost: {
-      type: DataTypes.DECIMAL, // Matches the numeric type in the table
-      allowNull: true, // NULL is allowed according to your table definition
-    },
-    total_material_cost: {
-      type: DataTypes.DECIMAL, // Matches the numeric type in the table
-      allowNull: true, // NULL is allowed according to your table definition
-    },
-    customer_state: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    mwo_approver_email: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    mwo_approver_name: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    approved_by: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    approved_at: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    approver_comments: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -123,9 +40,102 @@ const MotherWorkorder = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    route_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    internal_external: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    locator_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    tps_dc_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mm_status: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    customer_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mm_approver1_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mm_approver1_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mm_approver2_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mm_approver2_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mm_approver3_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mm_approver3_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    actioned_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    actioned_at: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    approver_comments: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    requested_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    requested_at: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    cwo_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    cwo_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    transaction_type: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    customer_dc_no: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    intracity_flag: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+    tps_dc_date: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
   },
   {
-    tableName: "wow-mother-workorder",
+    tableName: "wow-material-management",
     schema: "WOW",
     timestamps: false,
   }
@@ -133,5 +143,5 @@ const MotherWorkorder = sequelize.define(
 
 module.exports = {
   sequelize,
-  MotherWorkorder,
+  MaterialManagement,
 };

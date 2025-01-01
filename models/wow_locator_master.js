@@ -11,27 +11,19 @@ const sequelize = new Sequelize(
   }
 );
 
-const CityProject = sequelize.define(
-  "CityProject",
+const LocatorMaster = sequelize.define(
+  "LocatorMaster",
   {
-    city_manager_id: {
-      type: DataTypes.STRING,
+    id: {
+      type: DataTypes.NUMERIC,
       primaryKey: true,
-      autoIncrement: true,
+      allowNull: false,
     },
-    city_name: {
+    vendor_name: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    manager_name: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    manager_email: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    locator: {
+    locator_name: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -39,17 +31,17 @@ const CityProject = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    company: {
+    internal_external: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    state: {
+    city: {
       type: DataTypes.STRING,
       allowNull: true,
     },
   },
   {
-    tableName: "wow-city-project-mapping",
+    tableName: "wow_locator_master",
     schema: "WOW",
     timestamps: false,
   }
@@ -57,5 +49,5 @@ const CityProject = sequelize.define(
 
 module.exports = {
   sequelize,
-  CityProject,
+  LocatorMaster,
 };

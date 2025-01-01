@@ -23,6 +23,7 @@ const createMotherWorkorder = async (req, res) => {
       type,
       customer_id,
       execution_city,
+      state,
       customer_project_manager,
       customer_name,
       customer_state,
@@ -72,6 +73,7 @@ const createMotherWorkorder = async (req, res) => {
         type,
         customer_id,
         execution_city,
+        state,
         customer_project_manager,
         mwo_approver_email,
         mwo_approver_name,
@@ -163,7 +165,9 @@ const findWorkorder = async (req, res) => {
 
 const findChildWorkorder = async (req, res) => {
   try {
-    const foundChildWorkorder = await ChildWorkorder.findAll();
+    const foundChildWorkorder = await ChildWorkorder.findAll({
+      where: { cwo_status: "Approved" },
+    });
     res.json(foundChildWorkorder);
   } catch (error) {
     console.error(error);
@@ -175,11 +179,14 @@ const createChildWorkorder = async (req, res) => {
   const {
     mwo_id,
     mwo_number,
+    route_name,
     vendor_id,
+    vendor_name,
     vendor_route_allocation,
     total_service_cost,
     internal_manager,
     execution_city,
+    state,
     workorder_type,
     cwo_number,
     total_material_cost,
@@ -202,10 +209,13 @@ const createChildWorkorder = async (req, res) => {
         mwo_id,
         mwo_number,
         vendor_id,
+        vendor_name,
         vendor_route_allocation,
         total_service_cost,
         internal_manager,
+        route_name,
         execution_city,
+        state,
         workorder_type,
         cwo_number,
         total_material_cost,
@@ -228,6 +238,7 @@ const createChildWorkorder = async (req, res) => {
           {
             record_id: `${cwo_number}_${material.material_id}`,
             mwo_number,
+            mwo_id: mwo_id,
             material_id: material.material_id,
             material_desc: material.material_desc,
             material_uom: material.material_uom,
@@ -276,6 +287,7 @@ const createChildWorkorder = async (req, res) => {
           {
             record_id: `${cwo_number}_${service.service_id}`,
             mwo_number,
+            mwo_id: mwo_id,
             service_id: service.service_id,
             service_desc: service.service_desc,
             service_uom: service.service_uom,
@@ -652,7 +664,7 @@ const updateCwoApproveDetails = async (req, res) => {
       return res.status(400).json({ message: "CWO ID is required" });
     }
 
-    const result = await MotherWorkorder.update(
+    const result = await ChildWorkorder.update(
       {
         cwo_status,
         approved_at,

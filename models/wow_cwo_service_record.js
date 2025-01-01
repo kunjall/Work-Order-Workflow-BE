@@ -59,6 +59,10 @@ const ServiceRecord = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    mwo_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     cwo_number: {
       type: DataTypes.STRING,
       allowNull: true,

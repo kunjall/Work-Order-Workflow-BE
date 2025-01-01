@@ -43,6 +43,14 @@ const ApprovalMatrix = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    approver2_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    approver2_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "wow-approval-matrix",

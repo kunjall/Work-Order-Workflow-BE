@@ -1,5 +1,6 @@
 const { MaterialInventory } = require("../models/wow_material_inventory.js");
 const { InventoryInward } = require("../models/wow_inventory_inward");
+const { InventoryStock } = require("../models/wow_inventory_stock.js");
 const { where } = require("sequelize");
 const { Op } = require("sequelize");
 const { Sequelize } = require("sequelize");
@@ -33,10 +34,14 @@ const enterInventory = async (req, res) => {
     created_at,
     inventory_receiver_name,
     inventory_receiver_email,
+    materials, // Array of material entries [{ material_id, material_wo_qty, material_desc, material_uom }]
   } = req.body;
 
+  const transaction = await sequelize.transaction(); // Start a transaction
+
   try {
-    const response = await InventoryInward.create(
+    // Step 1: Insert into InventoryInward
+    const inventory = await InventoryInward.create(
       {
         customer_dc_number,
         customer_id,
@@ -56,40 +61,45 @@ const enterInventory = async (req, res) => {
         created_by,
         created_at,
       },
-      { logging: console.log }
+      { transaction }
     );
 
-    res.status(201).json(response.inventory_id);
+    // Step 2: Process each material entry
+    for (const material of materials) {
+      const { material_id, material_wo_qty, material_desc, material_uom } =
+        material;
+
+      // Insert into MaterialInventory
+      await MaterialInventory.create(
+        {
+          record_id: `${inventory.inventory_id}-${material_id}`, // Example composite ID
+          customer_dc_number,
+          material_id,
+          material_desc,
+          material_uom,
+          material_wo_qty,
+          inventory_id: inventory.inventory_id,
+        },
+        { transaction }
+      );
+
+      // Update material_stock in WowInventoryStock
+      await InventoryStock.increment(
+        { material_stock: material_wo_qty }, // Increment material_stock by material_wo_qty
+        {
+          where: { material_id },
+          transaction,
+        }
+      );
+    }
+
+    // Commit the transaction if all operations succeed
+    await transaction.commit();
+
+    res.status(201).json({ inventory_id: inventory.inventory_id });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
-const enterInventoryMaterial = async (req, res) => {
-  const {
-    record_id,
-    customer_dc_number,
-    material_id,
-    material_desc,
-    material_uom,
-    material_wo_qty,
-    inventory_id,
-  } = req.body;
-
-  try {
-    await MaterialInventory.create({
-      record_id,
-      customer_dc_number,
-      material_id,
-      material_desc,
-      material_uom,
-      material_wo_qty,
-      inventory_id,
-    });
-
-    res.status(201).json("Success");
-  } catch (error) {
+    // Rollback the transaction if any operation fails
+    await transaction.rollback();
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
@@ -249,7 +259,7 @@ const updateApprovedDetails = async (req, res) => {
 };
 
 module.exports = {
-  enterInventoryMaterial,
+  // enterInventoryMaterial,
   enterInventory,
   getInventoryInwardReciever,
   getInventoryMaterialInventory,

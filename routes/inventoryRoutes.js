@@ -27,11 +27,11 @@ router.get(
   inventoryController.getAllInventoryMaterial
 );
 
-router.post(
-  "/inventory/enterMaterial",
-  authenticateUser,
-  inventoryController.enterInventoryMaterial
-);
+// router.post(
+//   "/inventory/enterMaterial",
+//   authenticateUser,
+//   inventoryController.enterInventoryMaterial
+// );
 
 router.patch(
   "/inventory/updateReceived",

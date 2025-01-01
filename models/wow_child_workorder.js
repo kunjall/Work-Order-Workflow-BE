@@ -100,6 +100,18 @@ const ChildWorkorder = sequelize.define(
       type: DataTypes.DATE, // Changed from STRING to DATE
       allowNull: true,
     },
+    state: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    vendor_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    route_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "wow-child-workorder",

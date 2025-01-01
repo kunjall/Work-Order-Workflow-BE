@@ -38,4 +38,10 @@ router.get(
   masterController.findClientWarehouses
 );
 
+router.get(
+  "/master/find-locators",
+  authenticateUser,
+  masterController.findLocators
+);
+
 module.exports = router;

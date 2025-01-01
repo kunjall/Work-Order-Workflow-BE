@@ -11,45 +11,48 @@ const sequelize = new Sequelize(
   }
 );
 
-const CityProject = sequelize.define(
-  "CityProject",
+const InventoryStock = sequelize.define(
+  "InventoryStock",
   {
-    city_manager_id: {
-      type: DataTypes.STRING,
+    id: {
+      type: DataTypes.INTEGER,
       primaryKey: true,
-      autoIncrement: true,
+      allowNull: false,
+      autoIncrement: false, // Change to `true` if `id` is auto-incremented
     },
-    city_name: {
+    material_id: {
       type: DataTypes.STRING,
       allowNull: true,
+      comment: "Material ID",
     },
-    manager_name: {
+    material_stock: {
+      type: DataTypes.NUMERIC,
+      allowNull: true,
+      comment: "Material Stock Quantity",
+    },
+    material_desc: {
       type: DataTypes.STRING,
       allowNull: true,
+      comment: "Material Description",
     },
-    manager_email: {
+    material_uom: {
       type: DataTypes.STRING,
       allowNull: true,
-    },
-    locator: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    type: {
-      type: DataTypes.STRING,
-      allowNull: true,
+      comment: "Material Unit of Measure",
     },
     company: {
       type: DataTypes.STRING,
       allowNull: true,
+      comment: "Company",
     },
-    state: {
+    material_rate: {
       type: DataTypes.STRING,
       allowNull: true,
+      comment: "Material Rate",
     },
   },
   {
-    tableName: "wow-city-project-mapping",
+    tableName: "wow-inventory-stock",
     schema: "WOW",
     timestamps: false,
   }
@@ -57,5 +60,5 @@ const CityProject = sequelize.define(
 
 module.exports = {
   sequelize,
-  CityProject,
+  InventoryStock,
 };

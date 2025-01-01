@@ -7,6 +7,7 @@ const { CityProject } = require("../models/wow_city_project_mapping");
 const {
   ClientWarehouseMaster,
 } = require("../models/wow_client_warehouse_master");
+const { LocatorMaster } = require("../models/wow_locator_master");
 
 const findCustomer = async (req, res) => {
   try {
@@ -106,6 +107,21 @@ const findClientWarehouses = async (req, res) => {
   }
 };
 
+const findLocators = async (req, res) => {
+  try {
+    const { vendor_name, city, type, customer_name } = req.query;
+    console;
+    const foundLocators = await LocatorMaster.findAll({
+      where: { vendor_name, city, type, customer_name },
+      logging: console.log,
+    });
+    res.json(foundLocators);
+  } catch (error) {
+    console.error("Error finding locators:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   findMaterial,
   findServices,
@@ -114,4 +130,5 @@ module.exports = {
   findCity,
   findWarehouses,
   findClientWarehouses,
+  findLocators,
 };

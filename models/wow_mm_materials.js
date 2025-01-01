@@ -11,45 +11,69 @@ const sequelize = new Sequelize(
   }
 );
 
-const CityProject = sequelize.define(
-  "CityProject",
+const MmMaterial = sequelize.define(
+  "MmMaterial",
   {
-    city_manager_id: {
+    record_id: {
       type: DataTypes.STRING,
       primaryKey: true,
-      autoIncrement: true,
+      allowNull: false,
     },
-    city_name: {
+    material_id: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    manager_name: {
+    material_desc: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    manager_email: {
+    material_unit_price: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    locator: {
+    material_uom: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    type: {
+    material_req_qty: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    company: {
+    material_provided_qty: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    state: {
+    material_bal_qty: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    material_free_qty: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    material_price: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mm_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    locator_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    cwo_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    cwo_number: {
       type: DataTypes.STRING,
       allowNull: true,
     },
   },
   {
-    tableName: "wow-city-project-mapping",
+    tableName: "wow-mm-material-record",
     schema: "WOW",
     timestamps: false,
   }
@@ -57,5 +81,5 @@ const CityProject = sequelize.define(
 
 module.exports = {
   sequelize,
-  CityProject,
+  MmMaterial,
 };
