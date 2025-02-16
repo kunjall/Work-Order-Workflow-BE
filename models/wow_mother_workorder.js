@@ -123,6 +123,34 @@ const MotherWorkorder = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    bal_material_cost: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    bal_service_cost: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    overhead_budget: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    mwo_approver1_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mwo_approver1_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mwo_approver2_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mwo_approver2_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "wow-mother-workorder",

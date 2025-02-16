@@ -40,6 +40,10 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    company: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
   {
     tableName: "wow-user-login",

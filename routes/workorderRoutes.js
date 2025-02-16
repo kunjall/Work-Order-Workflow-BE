@@ -45,6 +45,12 @@ router.get(
 );
 
 router.get(
+  "/workorder/find-invoice-cwo",
+  authenticateUser,
+  workorderController.invoiceCwo
+);
+
+router.get(
   "/workorder/find-child-services",
   authenticateUser,
   workorderController.findChildServices

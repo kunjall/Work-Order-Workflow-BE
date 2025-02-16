@@ -50,6 +50,11 @@ const InventoryStock = sequelize.define(
       allowNull: true,
       comment: "Material Rate",
     },
+    warehouse_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Warehouse Id",
+    },
   },
   {
     tableName: "wow-inventory-stock",

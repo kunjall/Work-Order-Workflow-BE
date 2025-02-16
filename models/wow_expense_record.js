@@ -11,65 +11,45 @@ const sequelize = new Sequelize(
   }
 );
 
-const ServiceRecord = sequelize.define(
-  "ServiceRecord",
+const ExpenseRecord = sequelize.define(
+  "ExpenseRecord",
   {
-    record_id: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false,
-    },
-    mwo_number: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_id: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_desc: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_uom: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_bal_qty: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_wo_qty: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_price: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_rate: {
+    expense_id: {
       type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    vendor_name: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
-    vendor_id: {
+    service: {
       type: DataTypes.STRING,
       allowNull: true,
     },
     cwo_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     mwo_id: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    cwo_number: {
+    expense_amount: {
+      type: DataTypes.NUMBER,
+      allowNull: true,
+    },
+    qty: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    uom: {
       type: DataTypes.STRING,
       allowNull: true,
     },
   },
   {
-    tableName: "wow-cwo-service-record",
+    tableName: "wow-expense-record",
     schema: "WOW",
     timestamps: false,
   }
@@ -77,5 +57,5 @@ const ServiceRecord = sequelize.define(
 
 module.exports = {
   sequelize,
-  ServiceRecord,
+  ExpenseRecord,
 };

@@ -43,7 +43,7 @@ const MmMaterial = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    material_bal_qty: {
+    material_cwo_bal_qty: {
       type: DataTypes.STRING,
       allowNull: true,
     },

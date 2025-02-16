@@ -21,9 +21,19 @@ const loginUser = async (req, res) => {
     }
 
     const secretKey = process.env.SECRET_KEY;
-    const token = jwt.sign({ userId: user.id, role: user.role }, secretKey, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        role: user.role,
+        name: user.name,
+        username: user.username,
+        company: user.company,
+      },
+      secretKey,
+      {
+        expiresIn: "1h",
+      }
+    );
     console.log(user);
     return res.json({ token, role: user.role, name: user.name });
   } catch (error) {

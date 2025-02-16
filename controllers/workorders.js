@@ -5,7 +5,7 @@ const { ChildWorkorder } = require("../models/wow_child_workorder");
 const { MotherMaterialRecord } = require("../models/wow_mwo_material_record");
 const { MotherServiceRecord } = require("../models/wow_mwo_service_record");
 const { sequelize } = require("../utils/db");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 
 const createMotherWorkorder = async (req, res) => {
   const transaction = await sequelize.transaction();
@@ -84,6 +84,8 @@ const createMotherWorkorder = async (req, res) => {
         created_at,
         total_service_cost,
         total_material_cost,
+        bal_service_cost: Number(total_service_cost),
+        bal_material_cost: Number(total_material_cost),
       },
       { transaction }
     );
@@ -164,10 +166,35 @@ const findWorkorder = async (req, res) => {
 };
 
 const findChildWorkorder = async (req, res) => {
+  const { company, internal_manager } = req.query;
+
+  const whereCondition =
+    company === "TPS"
+      ? { cwo_status: "Approved", internal_manager: internal_manager }
+      : { cwo_status: "Approved", vendor_name: company };
+
   try {
     const foundChildWorkorder = await ChildWorkorder.findAll({
-      where: { cwo_status: "Approved" },
+      where: whereCondition,
     });
+
+    res.json(foundChildWorkorder);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const invoiceCwo = async (req, res) => {
+  const { mwo_id } = req.query;
+
+  const whereCondition = { mwo_id, cwo_status: "Approved" };
+
+  try {
+    const foundChildWorkorder = await ChildWorkorder.findAll({
+      where: whereCondition,
+    });
+
     res.json(foundChildWorkorder);
   } catch (error) {
     console.error(error);
@@ -198,6 +225,9 @@ const createChildWorkorder = async (req, res) => {
     cwo_approver_name,
     created_at,
     created_by,
+    gis_code,
+    homepass_count,
+    activity,
   } = req.body;
 
   const transaction = await sequelize.transaction();
@@ -225,6 +255,9 @@ const createChildWorkorder = async (req, res) => {
         cwo_approver_name,
         created_at,
         created_by,
+        gis_code,
+        homepass_count,
+        activity,
       },
       { transaction }
     );
@@ -480,36 +513,55 @@ const findMotherMaterials = async (req, res) => {
 
 const updateMwoStatusDetails = async (req, res) => {
   try {
-    const { mwo_id, mwo_status, approved_at, approved_by, approver_comments } =
-      req.body;
+    const {
+      mwo_id,
+      mwo_status,
+      approved_at,
+      approved_by,
+      approver_comments,
+      mwo_approver1_email,
+      mwo_approver1_name,
+      mwo_approver2_email,
+      mwo_approver2_name,
+    } = req.body;
 
     if (!mwo_id) {
       return res.status(400).json({ message: "MWO ID is required" });
     }
 
-    const result = await MotherWorkorder.update(
-      {
-        mwo_status,
-        approved_at,
-        approved_by,
-        approver_comments,
-      },
-      {
-        where: { mwo_id },
-      }
-    );
+    console.log(mwo_approver1_email);
 
-    if (result[0] === 0) {
-      // No rows updated
+    // Create an update object dynamically to avoid overwriting with empty values
+    const updateData = {};
+
+    if (mwo_status) updateData.mwo_status = mwo_status;
+    if (approved_at) updateData.approved_at = approved_at;
+    if (approved_by) updateData.approved_by = approved_by;
+    if (approver_comments) updateData.approver_comments = approver_comments;
+    if (mwo_approver1_email)
+      updateData.mwo_approver1_email = mwo_approver1_email;
+    if (mwo_approver1_name) updateData.mwo_approver1_name = mwo_approver1_name;
+    if (mwo_approver2_email)
+      updateData.mwo_approver2_email = mwo_approver2_email;
+    if (mwo_approver2_name) updateData.mwo_approver2_name = mwo_approver2_name;
+
+    console.log(updateData);
+
+    const [updatedRows] = await MotherWorkorder.update(updateData, {
+      where: { mwo_id },
+    });
+
+    if (updatedRows === 0) {
       return res.status(404).json({ message: "MWO record not found" });
     }
 
-    res.status(200).json({ message: "Success" });
+    res.status(200).json({ message: "MWO status updated successfully" });
   } catch (err) {
-    console.error(err);
+    console.error("Error updating MWO status:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 const getAllMwoMaterial = async (req, res) => {
   try {
     // Input validation
@@ -852,4 +904,5 @@ module.exports = {
   getAllCwoService,
   updateCwoApproveDetails,
   rejectCwo,
+  invoiceCwo,
 };

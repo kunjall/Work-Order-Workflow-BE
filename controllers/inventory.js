@@ -84,13 +84,6 @@ const enterInventory = async (req, res) => {
       );
 
       // Update material_stock in WowInventoryStock
-      await InventoryStock.increment(
-        { material_stock: material_wo_qty }, // Increment material_stock by material_wo_qty
-        {
-          where: { material_id },
-          transaction,
-        }
-      );
     }
 
     // Commit the transaction if all operations succeed
@@ -222,6 +215,8 @@ const updateReceivedDetails = async (req, res) => {
 };
 
 const updateApprovedDetails = async (req, res) => {
+  const transaction = await sequelize.transaction(); // Start a transaction
+
   try {
     const {
       inventory_id,
@@ -229,6 +224,8 @@ const updateApprovedDetails = async (req, res) => {
       approved_at,
       approved_by,
       approver_comments,
+      material_stock,
+      warehouse_id,
     } = req.body;
 
     if (!inventory_id) {
@@ -244,6 +241,7 @@ const updateApprovedDetails = async (req, res) => {
       },
       {
         where: { inventory_id },
+        transaction,
       }
     );
 
@@ -251,8 +249,21 @@ const updateApprovedDetails = async (req, res) => {
       return res.status(404).json({ message: "Inventory record not found" });
     }
 
+    if (material_stock && material_stock.length > 0) {
+      for (const item of material_stock) {
+        await InventoryStock.increment(
+          { material_stock: item.material_wo_qty }, // Increment material_stock by material_wo_qty
+          {
+            where: { material_id: item.material_id, warehouse_id },
+            transaction,
+          }
+        );
+      }
+    }
+    await transaction.commit();
     res.status(200).json({ message: "Success" });
   } catch (err) {
+    await transaction.rollback();
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }

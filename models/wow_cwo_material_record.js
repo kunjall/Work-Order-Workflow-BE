@@ -44,10 +44,13 @@ const MaterialRecord = sequelize.define(
       allowNull: true,
     },
     material_bal_qty: {
-      type: DataTypes.STRING,
+      type: Sequelize.INTEGER, // Make sure this is the correct numeric type
+      allowNull: false,
+    },
+    material_mb_qty: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
-
     vendor_id: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -65,7 +68,7 @@ const MaterialRecord = sequelize.define(
       allowNull: true,
     },
     material_rate: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
   },

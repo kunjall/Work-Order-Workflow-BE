@@ -1,9 +1,12 @@
 const { LocatorStock } = require("../models/wow_locator_stock");
 const { MmMaterial } = require("../models/wow_mm_materials");
 const { MaterialManagement } = require("../models/wow_material_management");
+const { MaterialRecord } = require("../models/wow_cwo_material_record");
+const { InventoryStock } = require("../models/wow_inventory_stock.js");
 const { sequelize } = require("../utils/db");
+const { Op } = require("sequelize");
 
-const findMaterialStock = async (req, res) => {
+const findMaterialLocatorStock = async (req, res) => {
   try {
     const { material_id, locator_name } = req.query;
     const foundMaterialStock = await LocatorStock.findAll({
@@ -78,8 +81,7 @@ const createMM = async (req, res) => {
             material_desc: material.material_desc,
             material_uom: material.material_uom,
             material_req_qty: material.mm_qty,
-            material_bal_qty: material.mm_qty,
-            material_free_qty: material.mm_qty,
+            material_cwo_bal_qty: material.material_bal_qty,
             vendor_id: material.vendor_id,
             mm_id: createdMM.mm_id,
             cwo_id: cwo_id,
@@ -189,7 +191,260 @@ const createMM = async (req, res) => {
   }
 };
 
+const findChildMaterialStock = async (req, res) => {
+  try {
+    const { cwo_id, locator_name } = req.query;
+    const foundChildMaterialStock = await MmMaterial.findAll({
+      where: { cwo_id, locator_name },
+    });
+    res.json(foundChildMaterialStock);
+  } catch (error) {
+    console.error("Error finding Material stock:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getMMActions = async (req, res) => {
+  try {
+    const user = req.query.user;
+    const mmstatus = req.query.mmstatus;
+
+    if (!user || !mmstatus) {
+      return res
+        .status(400)
+        .json({ message: "User and cwo status are required." });
+    }
+
+    const whereCondition = {
+      mm_status: mmstatus,
+      [Op.or]: [
+        { mm_approver1_email: user },
+        { requested_by: user },
+        { mm_approver2_email: user },
+        { mm_approver3_email: user },
+      ],
+    };
+
+    // Fetch inventory data
+    const foundMM = await MaterialManagement.findAll({
+      where: whereCondition,
+    });
+
+    // Return the data
+    if (!foundMM || foundMM.length === 0) {
+      return res.status(200).json({ message: "No MM found." });
+    }
+
+    res.status(200).json(foundMM);
+  } catch (error) {
+    console.error("Error fetching mwo:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+const findMaterialMM = async (req, res) => {
+  try {
+    const { mm_id } = req.query;
+    const foundMaterialMM = await MmMaterial.findAll({
+      where: { mm_id },
+    });
+    res.json(foundMaterialMM);
+  } catch (error) {
+    console.error("Error finding Material stock:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const findMaterialMMforMB = async (req, res) => {
+  const { cwo_id } = req.query;
+
+  if (!cwo_id) {
+    return res
+      .status(400)
+      .json({ message: "Missing required parameter: cwo_id" });
+  }
+
+  try {
+    // Fetch material details and calculate the sum of material_provided_qty
+    const materials = await MmMaterial.findAll({
+      attributes: [
+        "material_desc",
+        "material_id",
+        "material_uom",
+        "material_unit_price",
+        [
+          sequelize.fn(
+            "SUM",
+            sequelize.fn(
+              "COALESCE",
+              sequelize.cast(sequelize.col("material_provided_qty"), "INTEGER"),
+              0
+            )
+          ),
+          "total_material_provided_qty",
+        ],
+      ],
+      where: { cwo_id },
+      group: [
+        "material_desc",
+        "material_id",
+        "material_uom",
+        "material_unit_price",
+      ],
+    });
+
+    // Send the materials as a response
+    res.status(200).json(materials);
+  } catch (error) {
+    console.error("Error fetching materials:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch materials", error: error.message });
+  }
+};
+
+const findAllMmMaterial = async (req, res) => {
+  try {
+    const foundMaterialMM = await MmMaterial.findAll();
+    res.json(foundMaterialMM);
+  } catch (error) {
+    console.error("Error finding Material stock:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const rejectApprovalMm = async (req, res) => {
+  try {
+    const { mm_id, mm_status, actioned_at, actioned_by, approver_comments } =
+      req.body;
+
+    await MaterialManagement.update(
+      {
+        mm_status,
+        actioned_at,
+        actioned_by,
+        approver_comments,
+      },
+      {
+        where: { mm_id },
+        logging: console.log,
+      }
+    );
+  } catch (err) {}
+};
+
+const updateApprovalMm = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const {
+      cwo_id,
+      mm_id,
+      mm_status,
+      actioned_at,
+      actioned_by,
+      approver_comments,
+      mmMaterial, // Optional
+      mm_approver2_email,
+      mm_approver2_name,
+      mm_approver3_email,
+      mm_approver3_name,
+      locator_name,
+      warehouse_id,
+    } = req.body;
+
+    // Log whether materialLineItems exist
+    if (mmMaterial && mmMaterial.length > 0) {
+      console.log("Material Line Items received:", mmMaterial);
+    } else {
+      console.log("No Material Line Items received.");
+    }
+    await MaterialManagement.update(
+      {
+        mm_status,
+        actioned_at,
+        actioned_by,
+        approver_comments,
+        mm_approver2_email,
+        mm_approver2_name,
+        mm_approver3_email,
+        mm_approver3_name,
+        warehouse_id,
+      },
+      {
+        where: { mm_id },
+        transaction,
+        logging: console.log,
+      }
+    );
+
+    if (mmMaterial && mmMaterial.length > 0 && mm_status !== "Approved") {
+      for (const item of mmMaterial) {
+        console.log(item);
+
+        await MmMaterial.update(
+          { material_provided_qty: item.issued_qty }, // Increment material_stock by material_wo_qty
+          {
+            where: { material_id: item.material_id, mm_id },
+            transaction,
+          }
+        );
+        // await LocatorStock.increment(
+        //   { stock_qty: item.issued_qty }, // Increment material_stock by material_wo_qty
+        //   {
+        //     where: { material_id: item.material_id, locator_name },
+        //     transaction,
+        //   }
+        // );
+
+        await MaterialRecord.decrement(
+          { material_bal_qty: parseInt(item.issued_qty) },
+          {
+            where: { material_id: item.material_id, cwo_id },
+            transaction,
+          }
+        );
+
+        await InventoryStock.decrement(
+          { material_stock: parseInt(item.issued_qty) },
+          {
+            where: { material_id: item.material_id, warehouse_id },
+            transaction,
+          }
+        );
+      }
+    }
+
+    if (mm_status === "Approved") {
+      console.log("hellow");
+      for (const item of mmMaterial) {
+        await LocatorStock.increment(
+          { stock_qty: item.material_provided_qty },
+          {
+            where: { material_id: item.material_id, locator_name },
+            transaction,
+            logging: console.log,
+          }
+        );
+      }
+    }
+    await transaction.commit();
+    return res.status(200).json({ message: "Status updated successfully" });
+  } catch (err) {
+    await transaction.rollback();
+    console.error("Error in updateApprovalMm:", err);
+    return res.status(500).json({ error: "Failed to update status" });
+  }
+};
+
 module.exports = {
-  findMaterialStock,
+  findMaterialLocatorStock,
+  findChildMaterialStock,
+  findAllMmMaterial,
+  findMaterialMMforMB,
+  updateApprovalMm,
+  rejectApprovalMm,
+  findMaterialMM,
   createMM,
+  getMMActions,
 };
