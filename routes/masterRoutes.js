@@ -44,4 +44,10 @@ router.get(
   masterController.findLocators
 );
 
+router.get(
+  "/master/find-locator-stock",
+  authenticateUser,
+  masterController.findLocatorStock
+);
+
 module.exports = router;

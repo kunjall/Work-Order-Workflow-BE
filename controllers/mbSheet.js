@@ -181,12 +181,10 @@ const getMBActions = async (req, res) => {
       ],
     };
 
-    // Fetch inventory data
     const foundMB = await MbSheet.findAll({
       where: whereCondition,
     });
 
-    // Return the data
     if (!foundMB || foundMB.length === 0) {
       return res.status(200).json({ message: "No MM found." });
     }
@@ -202,7 +200,7 @@ const findMaterialMB = async (req, res) => {
   try {
     const { mb_id } = req.query;
 
-    const whereClause = mb_id ? { where: { mb_id } } : {}; // Conditionally apply where clause
+    const whereClause = mb_id ? { where: { mb_id } } : {};
 
     const foundMaterialMB = await MbMaterial.findAll(whereClause);
 
@@ -217,7 +215,7 @@ const findServicesMB = async (req, res) => {
   try {
     const { mb_id } = req.query;
 
-    const whereClause = mb_id ? { where: { mb_id } } : {}; // Conditionally apply where clause
+    const whereClause = mb_id ? { where: { mb_id } } : {};
 
     const foundMBService = await MbService.findAll(whereClause);
 
@@ -231,54 +229,6 @@ const findServicesMB = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-// const findMaterialMMforMB = async (req, res) => {
-//   const { cwo_id } = req.query;
-
-//   if (!cwo_id) {
-//     return res
-//       .status(400)
-//       .json({ message: "Missing required parameter: cwo_id" });
-//   }
-
-//   try {
-//     // Fetch material details and calculate the sum of material_provided_qty
-//     const materials = await MmMaterial.findAll({
-//       attributes: [
-//         "material_desc",
-//         "material_id",
-//         "material_uom",
-//         "material_unit_price",
-//         [
-//           sequelize.fn(
-//             "SUM",
-//             sequelize.fn(
-//               "COALESCE",
-//               sequelize.cast(sequelize.col("material_provided_qty"), "INTEGER"),
-//               0
-//             )
-//           ),
-//           "total_material_provided_qty",
-//         ],
-//       ],
-//       where: { cwo_id },
-//       group: [
-//         "material_desc",
-//         "material_id",
-//         "material_uom",
-//         "material_unit_price",
-//       ],
-//     });
-
-//     // Send the materials as a response
-//     res.status(200).json(materials);
-//   } catch (error) {
-//     console.error("Error fetching materials:", error);
-//     res
-//       .status(500)
-//       .json({ message: "Failed to fetch materials", error: error.message });
-//   }
-// };
 
 const findAllMmMaterial = async (req, res) => {
   try {
@@ -304,7 +254,6 @@ const rejectApprovalMb = async (req, res) => {
       },
       {
         where: { mb_id },
-        logging: console.log,
       }
     );
   } catch (err) {}
@@ -321,7 +270,7 @@ const updateApprovalMb = async (req, res) => {
       actioned_at,
       actioned_by,
       approver_comments,
-      mbMaterial, // Optional
+      mbMaterial,
       mbService,
       mb_approver2_email,
       mb_approver2_name,
@@ -332,12 +281,6 @@ const updateApprovalMb = async (req, res) => {
       locator_name,
     } = req.body;
 
-    // Log whether materialLineItems exist
-    if (mbMaterial && mbMaterial.length > 0) {
-      console.log("Material Line Items received:", mbMaterial);
-    } else {
-      console.log("No Material Line Items received.");
-    }
     await MbSheet.update(
       {
         mb_status,
@@ -354,7 +297,6 @@ const updateApprovalMb = async (req, res) => {
       {
         where: { mb_id },
         transaction,
-        logging: console.log,
       }
     );
 
@@ -372,7 +314,6 @@ const updateApprovalMb = async (req, res) => {
           {
             where: { material_id: item.material_id, locator_name },
             transaction,
-            logging: console.log,
           }
         );
       }

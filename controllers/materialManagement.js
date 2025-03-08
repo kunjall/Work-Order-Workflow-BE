@@ -45,7 +45,6 @@ const createMM = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    // Create the child work order
     const createdMM = await MaterialManagement.create(
       {
         warehouse_id,
@@ -70,7 +69,6 @@ const createMM = async (req, res) => {
       { transaction }
     );
 
-    // Process material items
     if (materialItems && materialItems.length > 0) {
       for (const material of materialItems) {
         await MmMaterial.create(
@@ -92,94 +90,17 @@ const createMM = async (req, res) => {
           },
           { transaction }
         );
-
-        //     const materialRecord = await MotherMaterialRecord.findOne({
-        //       where: { record_id: material.material_record_id },
-        //       transaction,
-        //     });
-
-        //     if (!materialRecord) {
-        //       throw new Error(
-        //         `Material record not found for record ID: ${material.material_record_id}`
-        //       );
-        //     }
-
-        //     const newMaterialBalQty =
-        //       materialRecord.material_bal_qty - material.cwo_qty;
-
-        //     if (newMaterialBalQty < 0) {
-        //       throw new Error(
-        //         `Insufficient balance for material record ID: ${material.material_record_id}`
-        //       );
-        //     }
-
-        //     await MotherMaterialRecord.update(
-        //       { material_bal_qty: newMaterialBalQty },
-        //       { where: { record_id: material.material_record_id }, transaction }
-        //     );
       }
     }
 
-    // Process service items
-    // if (serviceItems && serviceItems.length > 0) {
-    //   for (const service of serviceItems) {
-    //     await ServiceRecord.create(
-    //       {
-    //         record_id: `${cwo_number}_${service.service_id}`,
-    //         mwo_number,
-    //         mwo_id: mwo_id,
-    //         service_id: service.service_id,
-    //         service_desc: service.service_desc,
-    //         service_uom: service.service_uom,
-    //         service_wo_qty: service.cwo_qty,
-    //         service_bal_qty: service.cwo_qty,
-    //         service_price: service.service_cwo_price,
-    //         service_rate: service.service_rate,
-    //         vendor_id,
-    //         cwo_id: createdWorkOrder.cwo_id,
-    //         cwo_number,
-    //       },
-    //       { transaction }
-    //     );
-
-    //     const serviceRecord = await MotherServiceRecord.findOne({
-    //       where: { record_id: service.service_record_id },
-    //       transaction,
-    //     });
-
-    //     if (!serviceRecord) {
-    //       throw new Error(
-    //         `Service record not found for record ID: ${service.service_record_id}`
-    //       );
-    //     }
-
-    //     const newServiceBalQty =
-    //       serviceRecord.service_bal_qty - service.cwo_qty;
-
-    //     if (newServiceBalQty < 0) {
-    //       throw new Error(
-    //         `Insufficient balance for service record ID: ${service.service_record_id}`
-    //       );
-    //     }
-
-    //     await MotherServiceRecord.update(
-    //       { service_bal_qty: newServiceBalQty },
-    //       { where: { record_id: service.service_record_id }, transaction }
-    //     );
-    //   }
-    // }
-
-    // Commit the transaction
     await transaction.commit();
 
     res.status(201).json({
       message: "MM and related data created successfully",
     });
   } catch (error) {
-    // Rollback the transaction on error
     await transaction.rollback();
 
-    // Determine error type
     if (error.message.includes("not found")) {
       res.status(404).json({ error: error.message });
     } else if (error.message.includes("Insufficient balance")) {
@@ -225,12 +146,10 @@ const getMMActions = async (req, res) => {
       ],
     };
 
-    // Fetch inventory data
     const foundMM = await MaterialManagement.findAll({
       where: whereCondition,
     });
 
-    // Return the data
     if (!foundMM || foundMM.length === 0) {
       return res.status(200).json({ message: "No MM found." });
     }
@@ -265,7 +184,6 @@ const findMaterialMMforMB = async (req, res) => {
   }
 
   try {
-    // Fetch material details and calculate the sum of material_provided_qty
     const materials = await MmMaterial.findAll({
       attributes: [
         "material_desc",
@@ -293,7 +211,6 @@ const findMaterialMMforMB = async (req, res) => {
       ],
     });
 
-    // Send the materials as a response
     res.status(200).json(materials);
   } catch (error) {
     console.error("Error fetching materials:", error);
@@ -327,7 +244,6 @@ const rejectApprovalMm = async (req, res) => {
       },
       {
         where: { mm_id },
-        logging: console.log,
       }
     );
   } catch (err) {}
@@ -344,7 +260,7 @@ const updateApprovalMm = async (req, res) => {
       actioned_at,
       actioned_by,
       approver_comments,
-      mmMaterial, // Optional
+      mmMaterial,
       mm_approver2_email,
       mm_approver2_name,
       mm_approver3_email,
@@ -353,12 +269,6 @@ const updateApprovalMm = async (req, res) => {
       warehouse_id,
     } = req.body;
 
-    // Log whether materialLineItems exist
-    if (mmMaterial && mmMaterial.length > 0) {
-      console.log("Material Line Items received:", mmMaterial);
-    } else {
-      console.log("No Material Line Items received.");
-    }
     await MaterialManagement.update(
       {
         mm_status,
@@ -374,28 +284,18 @@ const updateApprovalMm = async (req, res) => {
       {
         where: { mm_id },
         transaction,
-        logging: console.log,
       }
     );
 
     if (mmMaterial && mmMaterial.length > 0 && mm_status !== "Approved") {
       for (const item of mmMaterial) {
-        console.log(item);
-
         await MmMaterial.update(
-          { material_provided_qty: item.issued_qty }, // Increment material_stock by material_wo_qty
+          { material_provided_qty: item.issued_qty },
           {
             where: { material_id: item.material_id, mm_id },
             transaction,
           }
         );
-        // await LocatorStock.increment(
-        //   { stock_qty: item.issued_qty }, // Increment material_stock by material_wo_qty
-        //   {
-        //     where: { material_id: item.material_id, locator_name },
-        //     transaction,
-        //   }
-        // );
 
         await MaterialRecord.decrement(
           { material_bal_qty: parseInt(item.issued_qty) },
@@ -416,14 +316,12 @@ const updateApprovalMm = async (req, res) => {
     }
 
     if (mm_status === "Approved") {
-      console.log("hellow");
       for (const item of mmMaterial) {
         await LocatorStock.increment(
           { stock_qty: item.material_provided_qty },
           {
             where: { material_id: item.material_id, locator_name },
             transaction,
-            logging: console.log,
           }
         );
       }

@@ -16,6 +16,12 @@ router.get(
 );
 
 router.get(
+  "/inventory/get-inventory-stock",
+  authenticateUser,
+  inventoryController.getAllInventoryStock
+);
+
+router.get(
   "/inventory/get-inventory-materials",
   authenticateUser,
   inventoryController.getInventoryMaterialInventory
@@ -26,12 +32,6 @@ router.get(
   authenticateUser,
   inventoryController.getAllInventoryMaterial
 );
-
-// router.post(
-//   "/inventory/enterMaterial",
-//   authenticateUser,
-//   inventoryController.enterInventoryMaterial
-// );
 
 router.patch(
   "/inventory/updateReceived",

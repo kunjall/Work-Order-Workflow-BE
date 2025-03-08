@@ -26,18 +26,6 @@ router.get(
   workorderController.getCwoActions
 );
 
-// router.get(
-//   "/workorder/find-material-mwo-id",
-//   authenticateUser,
-//   workorderController.getMwoMaterialActions
-// );
-
-// router.get(
-//   "/workorder/find-service-mwo-id",
-//   authenticateUser,
-//   workorderController.getMwoServiceActions
-// );
-
 router.get(
   "/workorder/find-child-workorder",
   authenticateUser,

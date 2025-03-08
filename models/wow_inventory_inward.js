@@ -28,43 +28,43 @@ const InventoryInward = sequelize.define(
     },
     customer_id: {
       type: DataTypes.STRING,
-      allowNull: true, // Optional, as this column allows NULL
+      allowNull: true,
     },
     customer_name: {
       type: DataTypes.STRING,
-      allowNull: true, // Optional, as this column allows NULL
+      allowNull: true,
     },
     warehouse_id: {
       type: DataTypes.STRING,
-      allowNull: true, // Optional, as this column allows NULL
+      allowNull: true,
     },
     warehouse_city: {
       type: DataTypes.STRING,
-      allowNull: true, // Optional, as this column allows NULL
+      allowNull: true,
     },
     entry_date: {
       type: DataTypes.STRING,
-      allowNull: true, // Optional, as this column allows NULL
+      allowNull: true,
     },
     dc_date: {
       type: DataTypes.STRING,
-      allowNull: true, // Optional, as this column allows NULL
+      allowNull: true,
     },
     eway_bill_number: {
       type: DataTypes.STRING,
-      allowNull: true, // Optional, as this column allows NULL
+      allowNull: true,
     },
     mrs_number: {
       type: DataTypes.STRING,
-      allowNull: true, // Optional, as this column allows NULL
+      allowNull: true,
     },
     mrs_date: {
       type: DataTypes.STRING,
-      allowNull: true, // Optional, as this column allows NULL
+      allowNull: true,
     },
     client_warehouse_id: {
       type: DataTypes.STRING,
-      allowNull: true, // Optional, as this column allows NULL
+      allowNull: true,
     },
     client_warehouse_city: {
       type: DataTypes.STRING,

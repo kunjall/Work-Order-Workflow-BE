@@ -44,7 +44,7 @@ const MaterialRecord = sequelize.define(
       allowNull: true,
     },
     material_bal_qty: {
-      type: Sequelize.INTEGER, // Make sure this is the correct numeric type
+      type: Sequelize.INTEGER,
       allowNull: false,
     },
     material_mb_qty: {

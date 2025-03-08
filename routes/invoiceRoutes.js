@@ -21,6 +21,12 @@ router.get(
   invoiceController.getTotalExpenseForMWO
 );
 
+router.get(
+  "/invoice/find-all-expense",
+  authenticateUser,
+  invoiceController.getAllExpenses
+);
+
 router.patch(
   "/invoice/update-overhead-budget",
   authenticateUser,

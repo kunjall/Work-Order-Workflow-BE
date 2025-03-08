@@ -7,7 +7,6 @@ const { Sequelize } = require("sequelize");
 
 const findMaterialBudgets = async (req, res) => {
   try {
-    // Fetch Material Budget
     const materialBudget = await MaterialRecord.findAll({
       attributes: [
         "cwo_id",
@@ -16,14 +15,11 @@ const findMaterialBudgets = async (req, res) => {
           "material_budget",
         ],
       ],
-      group: ["cwo_id"], // Group by cwo_id to aggregate data
+      group: ["cwo_id"],
       raw: true,
-      logging: console.log,
     });
 
     res.json(materialBudget);
-
-    // Fetch Service Budget
   } catch (error) {
     console.error("Error fetching budgets:", error);
     throw error;
@@ -32,9 +28,6 @@ const findMaterialBudgets = async (req, res) => {
 
 const findServiceBudgets = async (req, res) => {
   try {
-    // Fetch Material Budget
-
-    // Fetch Service Budget
     const serviceBudget = await ServiceRecord.findAll({
       attributes: [
         "cwo_id",
@@ -43,7 +36,7 @@ const findServiceBudgets = async (req, res) => {
           "service_budget",
         ],
       ],
-      group: ["cwo_id"], // Group by cwo_id to aggregate data
+      group: ["cwo_id"],
       raw: true,
     });
 
@@ -60,7 +53,7 @@ const updateOverhead = async (req, res) => {
 
     const updatedRows = await MotherWorkorder.update(
       { overhead_budget: overhead_budget },
-      { where: { mwo_id } } // Fixed incorrect where clause syntax
+      { where: { mwo_id } }
     );
 
     if (updatedRows[0] === 0) {
@@ -80,12 +73,11 @@ const updateOverhead = async (req, res) => {
 
 const addExpense = async (req, res) => {
   try {
-    const expenses = req.body.expenses; // Expecting an array of expenses
+    const expenses = req.body.expenses;
 
     if (!Array.isArray(expenses) || expenses.length === 0) {
       return res.status(400).json({ message: "No expenses provided" });
     }
-    // Validate each expense entry
     for (const expense of expenses) {
       const { cwo_id, mwo_id, service, expense_amount, uom, qty, vendor_name } =
         expense;
@@ -105,7 +97,6 @@ const addExpense = async (req, res) => {
       }
     }
 
-    // Insert multiple expenses at once using bulkCreate
     const newExpenses = await ExpenseRecord.bulkCreate(expenses);
 
     res.status(200).json({
@@ -126,10 +117,8 @@ const getTotalExpenseForMWO = async (req, res) => {
     const { mwo_id } = req.query;
     const totalExpense = await ExpenseRecord.sum("expense_amount", {
       where: { mwo_id },
-      logging: console.log(),
     });
 
-    console.log(`Total expense for MWO ${mwo_id}:`, totalExpense);
     res.json(totalExpense);
   } catch (error) {
     console.error("Error fetching total expense:", error);
@@ -137,11 +126,22 @@ const getTotalExpenseForMWO = async (req, res) => {
   }
 };
 
-// Call the function (or export it)
+const getAllExpenses = async (req, res) => {
+  try {
+    const totalExpense = await ExpenseRecord.findAll({ raw: true });
+
+    res.json(totalExpense);
+  } catch (error) {
+    console.error("Error fetching total expense:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   findMaterialBudgets,
   findServiceBudgets,
   updateOverhead,
   addExpense,
   getTotalExpenseForMWO,
+  getAllExpenses,
 };

@@ -34,13 +34,12 @@ const enterInventory = async (req, res) => {
     created_at,
     inventory_receiver_name,
     inventory_receiver_email,
-    materials, // Array of material entries [{ material_id, material_wo_qty, material_desc, material_uom }]
+    materials,
   } = req.body;
 
-  const transaction = await sequelize.transaction(); // Start a transaction
+  const transaction = await sequelize.transaction();
 
   try {
-    // Step 1: Insert into InventoryInward
     const inventory = await InventoryInward.create(
       {
         customer_dc_number,
@@ -64,15 +63,13 @@ const enterInventory = async (req, res) => {
       { transaction }
     );
 
-    // Step 2: Process each material entry
     for (const material of materials) {
       const { material_id, material_wo_qty, material_desc, material_uom } =
         material;
 
-      // Insert into MaterialInventory
       await MaterialInventory.create(
         {
-          record_id: `${inventory.inventory_id}-${material_id}`, // Example composite ID
+          record_id: `${inventory.inventory_id}-${material_id}`,
           customer_dc_number,
           material_id,
           material_desc,
@@ -82,16 +79,12 @@ const enterInventory = async (req, res) => {
         },
         { transaction }
       );
-
-      // Update material_stock in WowInventoryStock
     }
 
-    // Commit the transaction if all operations succeed
     await transaction.commit();
 
     res.status(201).json({ inventory_id: inventory.inventory_id });
   } catch (error) {
-    // Rollback the transaction if any operation fails
     await transaction.rollback();
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -173,6 +166,28 @@ const getAllInventoryMaterial = async (req, res) => {
   }
 };
 
+const getAllInventoryStock = async (req, res) => {
+  try {
+    const stocks = await InventoryStock.findAll();
+
+    const groupedStock = stocks.reduce((acc, stock) => {
+      const warehouseId = stock.warehouse_id || "Unknown Warehouse";
+
+      if (!acc[warehouseId]) {
+        acc[warehouseId] = [];
+      }
+
+      acc[warehouseId].push(stock);
+      return acc;
+    }, {});
+
+    res.status(200).json(groupedStock);
+  } catch (error) {
+    console.error("Error fetching inventory stock:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 const updateReceivedDetails = async (req, res) => {
   try {
     const {
@@ -215,7 +230,7 @@ const updateReceivedDetails = async (req, res) => {
 };
 
 const updateApprovedDetails = async (req, res) => {
-  const transaction = await sequelize.transaction(); // Start a transaction
+  const transaction = await sequelize.transaction();
 
   try {
     const {
@@ -252,7 +267,7 @@ const updateApprovedDetails = async (req, res) => {
     if (material_stock && material_stock.length > 0) {
       for (const item of material_stock) {
         await InventoryStock.increment(
-          { material_stock: item.material_wo_qty }, // Increment material_stock by material_wo_qty
+          { material_stock: item.material_wo_qty },
           {
             where: { material_id: item.material_id, warehouse_id },
             transaction,
@@ -270,11 +285,11 @@ const updateApprovedDetails = async (req, res) => {
 };
 
 module.exports = {
-  // enterInventoryMaterial,
   enterInventory,
   getInventoryInwardReciever,
   getInventoryMaterialInventory,
   getAllInventoryMaterial,
   updateReceivedDetails,
   updateApprovedDetails,
+  getAllInventoryStock,
 };

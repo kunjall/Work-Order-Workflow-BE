@@ -13,7 +13,12 @@ const invoiceRoutes = require("./routes/invoiceRoutes");
 
 const app = express();
 
-app.use(cors({ origin: process.env.URL }));
+app.use(
+  cors({
+    origin: process.env.URL,
+    credentials: true,
+  })
+);
 const PORT = process.env.PORT || 4000;
 
 app.use(express.json());

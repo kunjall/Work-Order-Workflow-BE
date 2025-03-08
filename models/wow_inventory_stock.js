@@ -18,7 +18,7 @@ const InventoryStock = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       allowNull: false,
-      autoIncrement: false, // Change to `true` if `id` is auto-incremented
+      autoIncrement: false,
     },
     material_id: {
       type: DataTypes.STRING,

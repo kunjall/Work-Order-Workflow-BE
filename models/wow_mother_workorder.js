@@ -32,35 +32,35 @@ const MotherWorkorder = sequelize.define(
     },
     customer_id: {
       type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
+      allowNull: true,
     },
 
     gis_code: {
       type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
+      allowNull: true,
     },
     route_name: {
       type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
+      allowNull: true,
     },
     homepass_count: {
       type: DataTypes.BIGINT,
-      allowNull: true, // Adjust according to your requirements
+      allowNull: true,
     },
     activity: {
       type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
+      allowNull: true,
     },
     type: {
       type: DataTypes.STRING,
-      allowNull: true, // Adjust according to your requirements
+      allowNull: true,
     },
     created_by: {
       type: DataTypes.STRING,
       allowNull: true,
     },
     created_at: {
-      type: DataTypes.DATE, // Changed from STRING to DATE
+      type: DataTypes.DATE,
       allowNull: true,
     },
     mwo_status: {
@@ -88,12 +88,12 @@ const MotherWorkorder = sequelize.define(
       allowNull: true,
     },
     total_service_cost: {
-      type: DataTypes.DECIMAL, // Matches the numeric type in the table
-      allowNull: true, // NULL is allowed according to your table definition
+      type: DataTypes.DECIMAL,
+      allowNull: true,
     },
     total_material_cost: {
-      type: DataTypes.DECIMAL, // Matches the numeric type in the table
-      allowNull: true, // NULL is allowed according to your table definition
+      type: DataTypes.DECIMAL,
+      allowNull: true,
     },
     customer_state: {
       type: DataTypes.STRING,

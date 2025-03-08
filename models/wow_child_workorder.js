@@ -34,34 +34,34 @@ const ChildWorkorder = sequelize.define(
     mwo_number: {
       type: DataTypes.STRING,
       allowNull: false,
-      primaryKey: true, // NULL is allowed according to your table definition
+      primaryKey: true,
     },
     vendor_id: {
       type: DataTypes.STRING,
-      allowNull: true, // NULL is allowed according to your table definition
+      allowNull: true,
     },
     vendor_route_allocation: {
       type: DataTypes.STRING,
-      allowNull: true, // NULL is allowed according to your table definition
+      allowNull: true,
     },
     total_service_cost: {
-      type: DataTypes.DECIMAL, // Matches the numeric type in the table
-      allowNull: true, // NULL is allowed according to your table definition
+      type: DataTypes.DECIMAL,
+      allowNull: true,
     },
     internal_manager: {
       type: DataTypes.STRING,
-      allowNull: true, // NULL is allowed according to your table definition
+      allowNull: true,
     },
     execution_city: {
       type: DataTypes.STRING,
-      allowNull: true, // NULL is allowed according to your table definition
+      allowNull: true,
     },
     workorder_type: {
       type: DataTypes.STRING,
-      allowNull: true, // NULL is allowed according to your table definition
+      allowNull: true,
     },
     total_material_cost: {
-      type: DataTypes.DECIMAL, // Matches the numeric type in the table
+      type: DataTypes.DECIMAL,
       allowNull: true,
     },
     cwo_status: {
@@ -97,7 +97,7 @@ const ChildWorkorder = sequelize.define(
       allowNull: true,
     },
     created_at: {
-      type: DataTypes.DATE, // Changed from STRING to DATE
+      type: DataTypes.DATE,
       allowNull: true,
     },
     state: {

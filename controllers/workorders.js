@@ -34,11 +34,10 @@ const createMotherWorkorder = async (req, res) => {
       mwo_approver_email,
       mwo_approver_name,
       total_material_cost,
-      materialRecords, // Array of material records
-      serviceRecords, // Array of service records
+      materialRecords,
+      serviceRecords,
     } = req.body;
 
-    // Validate required fields
     if (
       !mwo_number ||
       !workorder_type ||
@@ -59,7 +58,6 @@ const createMotherWorkorder = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Step 1: Create the workorder
     const newWorkorder = await MotherWorkorder.create(
       {
         mwo_number,
@@ -90,9 +88,6 @@ const createMotherWorkorder = async (req, res) => {
       { transaction }
     );
 
-    // Step 2: Insert material records
-    console.log(materialRecords);
-    console.log(serviceRecords);
     if (materialRecords && materialRecords.length > 0) {
       for (const material of materialRecords) {
         await MotherMaterialRecord.create(
@@ -113,7 +108,6 @@ const createMotherWorkorder = async (req, res) => {
       }
     }
 
-    // Step 3: Insert service records
     if (serviceRecords && serviceRecords.length > 0) {
       for (const service of serviceRecords) {
         await MotherServiceRecord.create(
@@ -134,7 +128,6 @@ const createMotherWorkorder = async (req, res) => {
       }
     }
 
-    // Commit the transaction
     await transaction.commit();
 
     res.status(201).json({
@@ -142,7 +135,6 @@ const createMotherWorkorder = async (req, res) => {
       workorderId: newWorkorder.mwo_id,
     });
   } catch (error) {
-    // Rollback transaction in case of error
     await transaction.rollback();
 
     console.error("Error during transaction:", error);
@@ -233,7 +225,6 @@ const createChildWorkorder = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    // Create the child work order
     const createdWorkOrder = await ChildWorkorder.create(
       {
         mwo_id,
@@ -262,9 +253,6 @@ const createChildWorkorder = async (req, res) => {
       { transaction }
     );
 
-    // Process material items
-    console.log(materialItems);
-    console.log(serviceItems);
     if (materialItems && materialItems.length > 0) {
       for (const material of materialItems) {
         await MaterialRecord.create(
@@ -313,7 +301,6 @@ const createChildWorkorder = async (req, res) => {
       }
     }
 
-    // Process service items
     if (serviceItems && serviceItems.length > 0) {
       for (const service of serviceItems) {
         await ServiceRecord.create(
@@ -362,17 +349,14 @@ const createChildWorkorder = async (req, res) => {
       }
     }
 
-    // Commit the transaction
     await transaction.commit();
 
     res.status(201).json({
       message: "Work Order and related data created successfully",
     });
   } catch (error) {
-    // Rollback the transaction on error
     await transaction.rollback();
 
-    // Determine error type
     if (error.message.includes("not found")) {
       res.status(404).json({ error: error.message });
     } else if (error.message.includes("Insufficient balance")) {
@@ -389,25 +373,21 @@ const getMwoActions = async (req, res) => {
     const user = req.query.user;
     const mwostatus = req.query.mwostatus;
 
-    // Input validation
     if (!user || !mwostatus) {
       return res
         .status(400)
         .json({ message: "User and mwo status are required." });
     }
 
-    // Define filter conditions based on inventory status
     const whereCondition = {
       mwo_status: mwostatus,
       [Op.or]: [{ mwo_approver_email: user }, { created_by: user }],
     };
 
-    // Fetch inventory data
     const foundMwo = await MotherWorkorder.findAll({
       where: whereCondition,
     });
 
-    // Return the data
     if (!foundMwo || foundMwo.length === 0) {
       return res.status(200).json({ message: "No MWO found." });
     }
@@ -421,13 +401,12 @@ const getMwoActions = async (req, res) => {
 
 const findMotherServices = async (req, res) => {
   try {
-    const { mwo_id } = req.query; // Extract mwo_number from the query
+    const { mwo_id } = req.query;
     if (!mwo_id) {
       return res.status(400).json({ message: "mwo id is required." });
     }
     const foundMwoService = await MotherServiceRecord.findAll({
       where: { mwo_id: mwo_id },
-      // Filter based on mwo_number
     });
     if (foundMwoService.length === 0) {
       return res.status(200).json({ message: "No service records found." });
@@ -447,7 +426,7 @@ const findMotherMaterials = async (req, res) => {
       return res.status(400).json({ message: "mwo id is required." });
     }
     const foundMotherMaterials = await MotherMaterialRecord.findAll({
-      where: { mwo_id: mwo_id }, // Filter based on mwo_number
+      where: { mwo_id: mwo_id },
     });
 
     if (foundMotherMaterials.length === 0) {
@@ -460,56 +439,6 @@ const findMotherMaterials = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-// const getMwoMaterialActions = async (req, res) => {
-//   try {
-//     const mwo_id = req.query.mwo_id;
-
-//     // Input validation
-//     if (!mwo_id) {
-//       return res.status(400).json({ message: "mwo id is required." });
-//     }
-//     const foundMwoMaterial = await MotherMaterialRecord.findAll({
-//       where: {
-//         mwo_id: mwo_id,
-//       },
-//     });
-
-//     if (foundMwoMaterial.length === 0) {
-//       return res.status(200).json({ message: "No material records found." });
-//     }
-
-//     res.json(foundMwoMaterial);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Internal Server Error" });
-//   }
-// };
-
-// const getMwoServiceActions = async (req, res) => {
-//   try {
-//     const mwo_id = req.query.mwo_id;
-
-//     // Input validation
-//     if (!mwo_id) {
-//       return res.status(400).json({ message: "mwo id is required." });
-//     }
-//     const foundMwoService = await MotherServiceRecord.findAll({
-//       where: {
-//         mwo_id: mwo_id,
-//       },
-//     });
-
-//     if (foundMwoService.length === 0) {
-//       return res.status(200).json({ message: "No service records found." });
-//     }
-
-//     res.json(foundMwoService);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Internal Server Error" });
-//   }
-// };
 
 const updateMwoStatusDetails = async (req, res) => {
   try {
@@ -529,9 +458,6 @@ const updateMwoStatusDetails = async (req, res) => {
       return res.status(400).json({ message: "MWO ID is required" });
     }
 
-    console.log(mwo_approver1_email);
-
-    // Create an update object dynamically to avoid overwriting with empty values
     const updateData = {};
 
     if (mwo_status) updateData.mwo_status = mwo_status;
@@ -544,8 +470,6 @@ const updateMwoStatusDetails = async (req, res) => {
     if (mwo_approver2_email)
       updateData.mwo_approver2_email = mwo_approver2_email;
     if (mwo_approver2_name) updateData.mwo_approver2_name = mwo_approver2_name;
-
-    console.log(updateData);
 
     const [updatedRows] = await MotherWorkorder.update(updateData, {
       where: { mwo_id },
@@ -564,8 +488,6 @@ const updateMwoStatusDetails = async (req, res) => {
 
 const getAllMwoMaterial = async (req, res) => {
   try {
-    // Input validation
-
     const foundMwoMaterial = await MotherMaterialRecord.findAll();
 
     if (foundMwoMaterial.length === 0) {
@@ -581,8 +503,6 @@ const getAllMwoMaterial = async (req, res) => {
 
 const getAllMwoService = async (req, res) => {
   try {
-    // Input validation
-
     const foundMwoService = await MotherServiceRecord.findAll();
 
     if (foundMwoService.length === 0) {
@@ -601,25 +521,21 @@ const getCwoActions = async (req, res) => {
     const user = req.query.user;
     const cwostatus = req.query.cwostatus;
 
-    // Input validation
     if (!user || !cwostatus) {
       return res
         .status(400)
         .json({ message: "User and cwo status are required." });
     }
 
-    // Define filter conditions based on inventory status
     const whereCondition = {
       cwo_status: cwostatus,
       [Op.or]: [{ cwo_approver_email: user }, { created_by: user }],
     };
 
-    // Fetch inventory data
     const foundCwo = await ChildWorkorder.findAll({
       where: whereCondition,
     });
 
-    // Return the data
     if (!foundCwo || foundCwo.length === 0) {
       return res.status(200).json({ message: "No CWO found." });
     }
@@ -633,13 +549,12 @@ const getCwoActions = async (req, res) => {
 
 const findChildServices = async (req, res) => {
   try {
-    const { cwo_id } = req.query; // Extract mwo_number from the query
+    const { cwo_id } = req.query;
     if (!cwo_id) {
       return res.status(400).json({ message: "mwo id is required." });
     }
     const foundMwoService = await ServiceRecord.findAll({
       where: { cwo_id: cwo_id },
-      // Filter based on mwo_number
     });
     if (foundMwoService.length === 0) {
       return res.status(200).json({ message: "No service records found." });
@@ -675,8 +590,6 @@ const findChildMaterials = async (req, res) => {
 
 const getAllCwoMaterial = async (req, res) => {
   try {
-    // Input validation
-
     const foundCwoMaterial = await MaterialRecord.findAll();
 
     if (foundCwoMaterial.length === 0) {
@@ -692,8 +605,6 @@ const getAllCwoMaterial = async (req, res) => {
 
 const getAllCwoService = async (req, res) => {
   try {
-    // Input validation
-
     const foundCwoService = await ServiceRecord.findAll();
 
     if (foundCwoService.length === 0) {
@@ -729,7 +640,6 @@ const updateCwoApproveDetails = async (req, res) => {
     );
 
     if (result[0] === 0) {
-      // No rows updated
       return res.status(404).json({ message: "MWO record not found" });
     }
 
@@ -750,11 +660,9 @@ const rejectCwo = async (req, res) => {
     approver_comments,
   } = req.body;
 
-  // Start a transaction
   const transaction = await sequelize.transaction();
 
   try {
-    // Fetch child materials and services
     const childMaterials = await MaterialRecord.findAll({
       where: { cwo_id },
       transaction,
@@ -764,9 +672,6 @@ const rejectCwo = async (req, res) => {
       transaction,
     });
 
-    // Update child materials and services quantities to "0"
-
-    // Fetch mother materials and services
     const motherMaterials = await MotherMaterialRecord.findAll({
       where: { mwo_id },
       transaction,
@@ -776,7 +681,6 @@ const rejectCwo = async (req, res) => {
       transaction,
     });
 
-    // Update mother materials and services by adding child quantities to their balance quantities
     await Promise.all(
       motherMaterials.map((material) => {
         const childMaterialQty = childMaterials
@@ -784,11 +688,7 @@ const rejectCwo = async (req, res) => {
           .reduce(
             (total, child) => total + parseFloat(child.material_wo_qty || "0"),
             0
-          ); // Parse as numbers
-
-        console.log(childMaterialQty);
-
-        console.log(childMaterials);
+          );
 
         return MotherMaterialRecord.update(
           {
@@ -808,8 +708,8 @@ const rejectCwo = async (req, res) => {
       childMaterials.map((material) =>
         MaterialRecord.update(
           {
-            material_wo_qty: "0", // Update as a string
-            material_bal_qty: "0", // Update as a string
+            material_wo_qty: "0",
+            material_bal_qty: "0",
           },
           {
             where: { record_id: material.record_id },
@@ -826,13 +726,13 @@ const rejectCwo = async (req, res) => {
           .reduce(
             (total, child) => total + parseFloat(child.service_wo_qty || "0"),
             0
-          ); // Parse as numbers
+          );
 
         return MotherServiceRecord.update(
           {
             service_bal_qty: (
               parseFloat(service.service_bal_qty || "0") + childServiceQty
-            ).toString(), // Convert back to string
+            ).toString(),
           },
           {
             where: { record_id: service.record_id },
@@ -846,8 +746,8 @@ const rejectCwo = async (req, res) => {
       childServices.map((service) =>
         ServiceRecord.update(
           {
-            service_wo_qty: "0", // Update as a string
-            service_bal_qty: "0", // Update as a string
+            service_wo_qty: "0",
+            service_bal_qty: "0",
           },
           {
             where: { record_id: service.record_id },
@@ -857,7 +757,6 @@ const rejectCwo = async (req, res) => {
       )
     );
 
-    // Update CWO status, approval details, and approver comments
     await ChildWorkorder.update(
       {
         cwo_status,
@@ -871,13 +770,11 @@ const rejectCwo = async (req, res) => {
       }
     );
 
-    // Commit the transaction if all updates succeed
     await transaction.commit();
     res.status(200).json({
       message: "Work order rejected and quantities updated successfully",
     });
   } catch (err) {
-    // Rollback the transaction on any failure
     await transaction.rollback();
     console.error("Transaction failed:", err);
     res

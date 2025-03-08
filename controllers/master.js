@@ -2,6 +2,7 @@ const { MaterialsMaster } = require("../models/wow_material_master");
 const { ServicesMaster } = require("../models/wow_services_master");
 const { VendorsMaster } = require("../models/wow_vendors_master");
 const { WarehouseMaster } = require("../models/wow_warehouse_master");
+const { LocatorStock } = require("../models/wow_locator_stock");
 const { Customer } = require("../models/wow_customer");
 const { CityProject } = require("../models/wow_city_project_mapping");
 const {
@@ -98,7 +99,6 @@ const findClientWarehouses = async (req, res) => {
     const company = req.query.company;
     const foundClientWarehouses = await ClientWarehouseMaster.findAll({
       where: { warehouse_company: company },
-      logging: console.log,
     });
     res.json(foundClientWarehouses);
   } catch (error) {
@@ -107,14 +107,35 @@ const findClientWarehouses = async (req, res) => {
   }
 };
 
+const findLocatorStock = async (req, res) => {
+  try {
+    const { locator_name } = req.query;
+    const foundMaterialStock = await LocatorStock.findAll({
+      where: { locator_name },
+    });
+    res.json(foundMaterialStock);
+  } catch (error) {
+    console.error("Error finding Material stock:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 const findLocators = async (req, res) => {
   try {
-    const { vendor_name, city, type, customer_name } = req.query;
-    console;
+    const { vendor_name, city, type, customer_name, internal_external } =
+      req.query;
+
+    const filter = {};
+    if (vendor_name) filter.vendor_name = vendor_name;
+    if (city) filter.city = city;
+    if (type) filter.type = type;
+    if (customer_name) filter.customer_name = customer_name;
+    if (internal_external) filter.internal_external = internal_external;
+
     const foundLocators = await LocatorMaster.findAll({
-      where: { vendor_name, city, type, customer_name },
-      logging: console.log,
+      where: filter,
     });
+
     res.json(foundLocators);
   } catch (error) {
     console.error("Error finding locators:", error);
@@ -130,5 +151,6 @@ module.exports = {
   findCity,
   findWarehouses,
   findClientWarehouses,
+  findLocatorStock,
   findLocators,
 };

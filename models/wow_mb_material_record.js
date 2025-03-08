@@ -17,7 +17,7 @@ const MbMaterial = sequelize.define(
     record_id: {
       type: DataTypes.STRING,
       primaryKey: true,
-      allowNull: true, // Set to false if this field is mandatory
+      allowNull: true,
     },
     material_id: {
       type: DataTypes.STRING,

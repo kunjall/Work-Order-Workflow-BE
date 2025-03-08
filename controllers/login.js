@@ -1,10 +1,12 @@
 const { User } = require("../models/wow_user_login");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const invalidatedTokens = new Set();
 
 const loginUser = async (req, res) => {
   const { username, password } = req.body;
+
   try {
     const user = await User.findOne({ where: { username } });
 
@@ -12,7 +14,8 @@ const loginUser = async (req, res) => {
       return res.status(404).json({ error: "User does not exist" });
     }
 
-    if (password !== user.password) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({ error: "Invalid password" });
     }
 
@@ -21,6 +24,10 @@ const loginUser = async (req, res) => {
     }
 
     const secretKey = process.env.SECRET_KEY;
+    if (!secretKey) {
+      return res.status(500).json({ error: "Missing server secret key" });
+    }
+
     const token = jwt.sign(
       {
         userId: user.id,
@@ -30,18 +37,15 @@ const loginUser = async (req, res) => {
         company: user.company,
       },
       secretKey,
-      {
-        expiresIn: "1h",
-      }
+      { expiresIn: "1h" }
     );
-    console.log(user);
+
     return res.json({ token, role: user.role, name: user.name });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
 const logoutUser = async (req, res) => {
   try {
     const authHeader = req.header("Authorization");
@@ -69,9 +73,7 @@ const logoutUser = async (req, res) => {
         return res.status(401).json({ error: "Unauthorized: Invalid token" });
       }
 
-      // Add token to invalidated set
       invalidatedTokens.add(token);
-      console.log("success");
       res.status(200).json({ message: "Logout successful" });
     });
   } catch (error) {

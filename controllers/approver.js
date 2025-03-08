@@ -6,7 +6,7 @@ const findReviewer = async (req, res) => {
 
     const whereClause = { type, city };
     if (reviewer_name) {
-      whereClause.reviewer_name = reviewer_name; // Add if reviewer_name exists
+      whereClause.reviewer_name = reviewer_name;
     }
 
     const foundReviewer = await ApprovalMatrix.findAll({

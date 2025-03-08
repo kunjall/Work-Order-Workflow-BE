@@ -17,7 +17,7 @@ const MbService = sequelize.define(
     record_id: {
       type: DataTypes.STRING,
       primaryKey: true,
-      allowNull: true, // Set to false if this field is mandatory
+      allowNull: true,
     },
     service_id: {
       type: DataTypes.STRING,
