@@ -300,7 +300,7 @@ const updateApprovalMb = async (req, res) => {
       }
     );
 
-    if (mb_status === "Approved") {
+    if (mb_status.toLowerCase() === "approved") {
       for (const item of mbMaterial) {
         await MaterialRecord.increment(
           { material_mb_qty: parseInt(item.material_log_qty) },

@@ -11,16 +11,16 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ where: { username } });
 
     if (!user) {
-      return res.status(404).json({ error: "User does not exist" });
+      return res.status(200).json({ error: "User does not exist" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ error: "Invalid password" });
+      return res.status(200).json({ error: "Invalid password" });
     }
 
     if (user.status !== "active") {
-      return res.status(403).json({ error: "User account is not active." });
+      return res.status(200).json({ error: "User account is not active." });
     }
 
     const secretKey = process.env.SECRET_KEY;

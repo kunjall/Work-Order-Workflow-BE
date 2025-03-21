@@ -79,8 +79,16 @@ const addExpense = async (req, res) => {
       return res.status(400).json({ message: "No expenses provided" });
     }
     for (const expense of expenses) {
-      const { cwo_id, mwo_id, service, expense_amount, uom, qty, vendor_name } =
-        expense;
+      const {
+        cwo_id,
+        mwo_id,
+        service,
+        expense_amount,
+        uom,
+        qty,
+        unit_price,
+        vendor_name,
+      } = expense;
 
       if (
         !cwo_id ||
@@ -89,6 +97,7 @@ const addExpense = async (req, res) => {
         !expense_amount ||
         !uom ||
         !qty ||
+        !unit_price ||
         !vendor_name
       ) {
         return res

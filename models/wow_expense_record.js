@@ -47,6 +47,22 @@ const ExpenseRecord = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    unit_price: {
+      type: DataTypes.NUMBER,
+      allowNull: true,
+    },
+    invoice_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    invoice_date: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    remarks: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "wow-expense-record",

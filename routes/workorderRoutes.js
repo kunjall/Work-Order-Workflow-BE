@@ -15,6 +15,12 @@ router.get(
 );
 
 router.get(
+  "/workorder/find-all-workorder",
+  authenticateUser,
+  workorderController.findAllWorkorder
+);
+
+router.get(
   "/workorder/find-workorder-actions",
   authenticateUser,
   workorderController.getMwoActions
@@ -48,6 +54,12 @@ router.get(
   "/workorder/find-child-material",
   authenticateUser,
   workorderController.findChildMaterials
+);
+
+router.get(
+  "/workorder/check-child-workorder",
+  authenticateUser,
+  workorderController.checkChildWorkorderExists
 );
 
 router.get(

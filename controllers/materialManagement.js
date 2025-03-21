@@ -315,7 +315,7 @@ const updateApprovalMm = async (req, res) => {
       }
     }
 
-    if (mm_status === "Approved") {
+    if (mm_status.toLowerCase() === "approved") {
       for (const item of mmMaterial) {
         await LocatorStock.increment(
           { stock_qty: item.material_provided_qty },

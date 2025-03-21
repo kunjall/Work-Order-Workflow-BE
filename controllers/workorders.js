@@ -157,11 +157,21 @@ const findWorkorder = async (req, res) => {
   }
 };
 
+const findAllWorkorder = async (req, res) => {
+  try {
+    const foundWorkorder = await MotherWorkorder.findAll({});
+    res.json(foundWorkorder);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 const findChildWorkorder = async (req, res) => {
   const { company, internal_manager } = req.query;
 
   const whereCondition =
-    company === "TPS"
+    company.toLowerCase() === "tps"
       ? { cwo_status: "Approved", internal_manager: internal_manager }
       : { cwo_status: "Approved", vendor_name: company };
 
@@ -516,6 +526,38 @@ const getAllMwoService = async (req, res) => {
   }
 };
 
+const checkChildWorkorderExists = async (req, res) => {
+  try {
+    const { mwo_number, cwo_number } = req.query;
+
+    if (!mwo_number || !cwo_number) {
+      return res
+        .status(400)
+        .json({ message: "MWO number and CWO number are required." });
+    }
+
+    const existingWorkorder = await ChildWorkorder.findOne({
+      where: {
+        mwo_number,
+        cwo_number,
+      },
+    });
+
+    if (existingWorkorder) {
+      return res
+        .status(200)
+        .json({ exists: true, message: "Child Workorder already exists." });
+    }
+
+    res
+      .status(200)
+      .json({ exists: false, message: "Child Workorder number is available." });
+  } catch (error) {
+    console.error("Error checking workorder existence:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 const getCwoActions = async (req, res) => {
   try {
     const user = req.query.user;
@@ -786,6 +828,7 @@ const rejectCwo = async (req, res) => {
 module.exports = {
   createMotherWorkorder,
   findWorkorder,
+  findAllWorkorder,
   findChildMaterials,
   findChildServices,
   findChildWorkorder,
@@ -802,4 +845,5 @@ module.exports = {
   updateCwoApproveDetails,
   rejectCwo,
   invoiceCwo,
+  checkChildWorkorderExists,
 };
