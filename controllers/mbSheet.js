@@ -31,7 +31,8 @@ const findMB = async (req, res) => {
       where: {
         cwo_number,
         mb_status: {
-          [Op.notLike]: `%${mbstatus}%`,
+          [Op.notIn]: [mbstatus, "Approved"], // Exclude exact matches
+          [Op.notLike]: "%Rejected%", // Exclude anything containing "Rejected"
         },
       },
     });
