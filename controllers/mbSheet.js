@@ -301,7 +301,7 @@ const updateApprovalMb = async (req, res) => {
       }
     );
 
-    if (mb_status.toLowerCase() === "pending with billing spoc") {
+    if (mb_status.toLowerCase() === "approved") {
       for (const item of mbMaterial) {
         await MaterialRecord.increment(
           { material_mb_qty: parseInt(item.material_log_qty) },
@@ -332,7 +332,7 @@ const updateApprovalMb = async (req, res) => {
     return res.status(200).json({ message: "Status updated successfully" });
   } catch (err) {
     await transaction.rollback();
-    console.error("Error in updateApprovalMm:", err);
+    console.error("Error in updateApprovalMb:", err);
     return res.status(500).json({ error: "Failed to update status" });
   }
 };
