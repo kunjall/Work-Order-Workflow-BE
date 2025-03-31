@@ -31,7 +31,7 @@ const findMB = async (req, res) => {
       where: {
         cwo_number,
         mb_status: {
-          [Op.like]: `%${mbstatus}%`,
+          [Op.notLike]: `%${mbstatus}%`,
         },
       },
     });
@@ -300,7 +300,7 @@ const updateApprovalMb = async (req, res) => {
       }
     );
 
-    if (mb_status.toLowerCase() === "approved") {
+    if (mb_status.toLowerCase() === "pending with billing spoc") {
       for (const item of mbMaterial) {
         await MaterialRecord.increment(
           { material_mb_qty: parseInt(item.material_log_qty) },
