@@ -386,13 +386,23 @@ const getMwoActions = async (req, res) => {
     if (!user || !mwostatus) {
       return res
         .status(400)
-        .json({ message: "User and mwo status are required." });
+        .json({ message: "User and MWO status are required." });
     }
 
-    const whereCondition = {
-      mwo_status: mwostatus,
-      [Op.or]: [{ mwo_approver_email: user }, { created_by: user }],
-    };
+    let whereCondition = { mwo_status: mwostatus };
+
+    // If user is NOT Pravin Lal or Herry Kochhar, apply the approver conditions
+    if (!["Pravin Lal", "Herry Kochhar"].includes(user)) {
+      whereCondition = {
+        ...whereCondition,
+        [Op.or]: [
+          { mwo_approver_name: user },
+          { mwo_approver1_name: user },
+          { mwo_approver2_name: user },
+          { created_by: user },
+        ],
+      };
+    }
 
     const foundMwo = await MotherWorkorder.findAll({
       where: whereCondition,
@@ -404,7 +414,7 @@ const getMwoActions = async (req, res) => {
 
     res.status(200).json(foundMwo);
   } catch (error) {
-    console.error("Error fetching mwo:", error);
+    console.error("Error fetching MWO:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 };
