@@ -127,24 +127,28 @@ const findChildMaterialStock = async (req, res) => {
 
 const getMMActions = async (req, res) => {
   try {
-    const user = req.query.user;
-    const mmstatus = req.query.mmstatus;
+    const { user, mmstatus, role } = req.query;
 
     if (!user || !mmstatus) {
       return res
         .status(400)
-        .json({ message: "User and cwo status are required." });
+        .json({ message: "User and MM status are required." });
     }
 
-    const whereCondition = {
-      mm_status: mmstatus,
-      [Op.or]: [
-        { mm_approver1_email: user },
-        { requested_by: user },
-        { mm_approver2_email: user },
-        { mm_approver3_email: user },
-      ],
-    };
+    let whereCondition = { mm_status: mmstatus };
+
+    // If the role does NOT contain 'admin', apply filtering based on the user
+    if (!role.toLowerCase().includes("admin")) {
+      whereCondition = {
+        ...whereCondition,
+        [Op.or]: [
+          { mm_approver1_name: user },
+          { requested_by: user },
+          { mm_approver2_name: user },
+          { mm_approver3_name: user },
+        ],
+      };
+    }
 
     const foundMM = await MaterialManagement.findAll({
       where: whereCondition,
@@ -156,7 +160,7 @@ const getMMActions = async (req, res) => {
 
     res.status(200).json(foundMM);
   } catch (error) {
-    console.error("Error fetching mwo:", error);
+    console.error("Error fetching MM:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 };

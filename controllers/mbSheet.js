@@ -163,36 +163,40 @@ const findChildMaterialStock = async (req, res) => {
 
 const getMBActions = async (req, res) => {
   try {
-    const user = req.query.user;
-    const mbstatus = req.query.mbstatus;
+    const { user, mbstatus, role } = req.query;
 
     if (!user || !mbstatus) {
       return res
         .status(400)
-        .json({ message: "User and cwo status are required." });
+        .json({ message: "User and MB status are required." });
     }
 
-    const whereCondition = {
-      mb_status: mbstatus,
-      [Op.or]: [
-        { mb_approver1_email: user },
-        { requested_by: user },
-        { mb_approver2_email: user },
-        { mb_approver3_email: user },
-      ],
-    };
+    let whereCondition = { mb_status: mbstatus };
+
+    // If the role does NOT contain 'admin', apply filtering based on the user
+    if (!role.toLowerCase().includes("admin")) {
+      whereCondition = {
+        ...whereCondition,
+        [Op.or]: [
+          { mb_approver1_name: user },
+          { requested_by: user },
+          { mb_approver2_name: user },
+          { mb_approver3_name: user },
+        ],
+      };
+    }
 
     const foundMB = await MbSheet.findAll({
       where: whereCondition,
     });
 
     if (!foundMB || foundMB.length === 0) {
-      return res.status(200).json({ message: "No MM found." });
+      return res.status(200).json({ message: "No MB found." });
     }
 
     res.status(200).json(foundMB);
   } catch (error) {
-    console.error("Error fetching mwo:", error);
+    console.error("Error fetching MB:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 };

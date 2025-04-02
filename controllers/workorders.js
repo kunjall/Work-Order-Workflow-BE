@@ -380,8 +380,7 @@ const createChildWorkorder = async (req, res) => {
 
 const getMwoActions = async (req, res) => {
   try {
-    const user = req.query.user;
-    const mwostatus = req.query.mwostatus;
+    const { user, mwostatus, role } = req.query;
 
     if (!user || !mwostatus) {
       return res
@@ -391,8 +390,8 @@ const getMwoActions = async (req, res) => {
 
     let whereCondition = { mwo_status: mwostatus };
 
-    // If user is NOT Pravin Lal or Herry Kochhar, apply the approver conditions
-    if (!["Pravin Lal", "Herry Kochhar"].includes(user)) {
+    // If the role does NOT contain 'admin', apply filtering based on the user
+    if (!role.toLowerCase().includes("admin")) {
       whereCondition = {
         ...whereCondition,
         [Op.or]: [
@@ -570,8 +569,7 @@ const checkChildWorkorderExists = async (req, res) => {
 
 const getCwoActions = async (req, res) => {
   try {
-    const user = req.query.user;
-    const cwostatus = req.query.cwostatus;
+    const { user, cwostatus, role } = req.query;
 
     if (!user || !cwostatus) {
       return res
@@ -579,10 +577,15 @@ const getCwoActions = async (req, res) => {
         .json({ message: "User and cwo status are required." });
     }
 
-    const whereCondition = {
-      cwo_status: cwostatus,
-      [Op.or]: [{ cwo_approver_email: user }, { created_by: user }],
-    };
+    let whereCondition = { cwo_status: cwostatus };
+
+    // If the role does NOT contain 'admin', apply filtering based on the user
+    if (!role.toLowerCase().includes("admin")) {
+      whereCondition = {
+        ...whereCondition,
+        [Op.or]: [{ cwo_approver_name: user }, { created_by: user }],
+      };
+    }
 
     const foundCwo = await ChildWorkorder.findAll({
       where: whereCondition,
@@ -594,7 +597,7 @@ const getCwoActions = async (req, res) => {
 
     res.status(200).json(foundCwo);
   } catch (error) {
-    console.error("Error fetching mwo:", error);
+    console.error("Error fetching CWO:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 };

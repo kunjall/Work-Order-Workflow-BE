@@ -93,8 +93,7 @@ const enterInventory = async (req, res) => {
 
 const getInventoryInwardReciever = async (req, res) => {
   try {
-    const user = req.query.user;
-    const inventorystatus = req.query.inventorystatus;
+    const { user, inventorystatus, role } = req.query;
 
     if (!user || !inventorystatus) {
       return res
@@ -102,14 +101,19 @@ const getInventoryInwardReciever = async (req, res) => {
         .json({ message: "User and inventory status are required." });
     }
 
-    const whereCondition = {
-      inventory_inward_status: inventorystatus,
-      [Op.or]: [
-        { inventory_receiver_email: user },
-        { inventory_approver_email: user },
-        { created_by: user },
-      ],
-    };
+    let whereCondition = { inventory_inward_status: inventorystatus };
+
+    // If the role does NOT contain 'admin', apply filtering based on the user
+    if (!role.toLowerCase().includes("admin")) {
+      whereCondition = {
+        ...whereCondition,
+        [Op.or]: [
+          { inventory_receiver_name: user },
+          { inventory_approver_name: user },
+          { created_by: user },
+        ],
+      };
+    }
 
     const foundInventory = await InventoryInward.findAll({
       where: whereCondition,
