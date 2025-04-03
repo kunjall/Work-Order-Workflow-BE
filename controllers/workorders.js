@@ -407,7 +407,10 @@ const getMwoActions = async (req, res) => {
       where: whereCondition,
     });
 
-    if (!foundMwo || foundMwo.length === 0) {
+    console.log(foundMwo);
+
+    if (!foundMwo) {
+      console.log("hehe");
       return res.status(200).json({ message: "No MWO found." });
     }
 
