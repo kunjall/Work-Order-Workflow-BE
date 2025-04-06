@@ -41,7 +41,7 @@ const LocatorMaster = sequelize.define(
     },
   },
   {
-    tableName: "wow_locator_master",
+    tableName: "wow-locator-master",
     schema: "WOW",
     timestamps: false,
   }
