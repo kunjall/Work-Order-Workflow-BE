@@ -294,7 +294,7 @@ const updateApprovalMm = async (req, res) => {
     if (mmMaterial && mmMaterial.length > 0 && mm_status !== "Approved") {
       for (const item of mmMaterial) {
         await MmMaterial.update(
-          { material_provided_qty: item.issued_qty },
+          { material_provided_qty: item.material_provided_qty },
           {
             where: { material_id: item.material_id, mm_id },
             transaction,
@@ -302,7 +302,7 @@ const updateApprovalMm = async (req, res) => {
         );
 
         await MaterialRecord.decrement(
-          { material_bal_qty: parseInt(item.issued_qty) },
+          { material_bal_qty: parseInt(item.material_provided_qty) },
           {
             where: { material_id: item.material_id, cwo_id },
             transaction,
@@ -310,7 +310,7 @@ const updateApprovalMm = async (req, res) => {
         );
 
         await InventoryStock.decrement(
-          { material_stock: parseInt(item.issued_qty) },
+          { material_stock: parseInt(item.material_provided_qty) },
           {
             where: { material_id: item.material_id, warehouse_id },
             transaction,
