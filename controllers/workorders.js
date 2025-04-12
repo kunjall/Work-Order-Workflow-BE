@@ -363,6 +363,7 @@ const createChildWorkorder = async (req, res) => {
 
     res.status(201).json({
       message: "Work Order and related data created successfully",
+      workorderId: createdWorkOrder.cwo_id,
     });
   } catch (error) {
     await transaction.rollback();
