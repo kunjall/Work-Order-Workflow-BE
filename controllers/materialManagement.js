@@ -292,7 +292,9 @@ const updateApprovalMm = async (req, res) => {
     );
 
     if (mmMaterial && mmMaterial.length > 0 && mm_status !== "Approved") {
+      console.log(mmMaterial);
       for (const item of mmMaterial) {
+        console.log(item);
         await MmMaterial.update(
           { material_provided_qty: item.material_provided_qty },
           {
