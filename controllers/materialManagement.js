@@ -291,7 +291,7 @@ const updateApprovalMm = async (req, res) => {
       }
     );
 
-    if (mmMaterial && mmMaterial.length > 0 && mm_status !== "Approved") {
+    if (mmMaterial && mmMaterial.length > 0 && mm_status !== "Received") {
       console.log(mmMaterial);
       for (const item of mmMaterial) {
         console.log(item);
@@ -321,7 +321,7 @@ const updateApprovalMm = async (req, res) => {
       }
     }
 
-    if (mm_status.toLowerCase() === "approved") {
+    if (mm_status.toLowerCase() === "Received") {
       for (const item of mmMaterial) {
         await LocatorStock.increment(
           { stock_qty: item.material_provided_qty },
