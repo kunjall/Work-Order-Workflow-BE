@@ -296,7 +296,7 @@ const updateApprovalMm = async (req, res) => {
       for (const item of mmMaterial) {
         console.log(item);
         await MmMaterial.update(
-          { material_provided_qty: item.material_provided_qty },
+          { material_provided_qty: item.issued_qty },
           {
             where: { material_id: item.material_id, mm_id },
             transaction,
@@ -304,7 +304,7 @@ const updateApprovalMm = async (req, res) => {
         );
 
         await MaterialRecord.decrement(
-          { material_bal_qty: parseInt(item.material_provided_qty) },
+          { material_bal_qty: parseInt(item.issued_qty) },
           {
             where: { material_id: item.material_id, cwo_id },
             transaction,
@@ -312,7 +312,7 @@ const updateApprovalMm = async (req, res) => {
         );
 
         await InventoryStock.decrement(
-          { material_stock: parseInt(item.material_provided_qty) },
+          { material_stock: parseInt(item.issued_qty) },
           {
             where: { material_id: item.material_id, warehouse_id },
             transaction,
