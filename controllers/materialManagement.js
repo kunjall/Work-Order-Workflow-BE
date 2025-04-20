@@ -271,6 +271,7 @@ const updateApprovalMm = async (req, res) => {
       mm_approver3_name,
       locator_name,
       warehouse_id,
+      transaction_type,
     } = req.body;
 
     await MaterialManagement.update(
@@ -291,47 +292,87 @@ const updateApprovalMm = async (req, res) => {
       }
     );
 
-    if (mmMaterial && mmMaterial.length > 0 && mm_status !== "Received") {
-      console.log(mmMaterial);
+    const isW2S = transaction_type.toLowerCase() === "w2s";
+    const isReceived = mm_status.toLowerCase() === "received";
+
+    if (mmMaterial && mmMaterial.length > 0) {
       for (const item of mmMaterial) {
-        console.log(item);
+        const issuedQty = parseFloat(item.issued_qty) || 0;
+        const providedQty = parseFloat(item.material_provided_qty) || 0;
+
+        // Always update material_provided_qty from issued_qty
         await MmMaterial.update(
-          { material_provided_qty: item.issued_qty },
+          { material_provided_qty: issuedQty },
           {
             where: { material_id: item.material_id, mm_id },
             transaction,
           }
         );
 
-        await MaterialRecord.decrement(
-          { material_bal_qty: parseInt(item.issued_qty) },
-          {
-            where: { material_id: item.material_id, cwo_id },
-            transaction,
-          }
-        );
+        if (!isReceived) {
+          if (isW2S) {
+            await MaterialRecord.decrement(
+              { material_bal_qty: issuedQty },
+              {
+                where: { material_id: item.material_id, cwo_id },
+                transaction,
+              }
+            );
 
-        await InventoryStock.decrement(
-          { material_stock: parseInt(item.issued_qty) },
-          {
-            where: { material_id: item.material_id, warehouse_id },
-            transaction,
+            await InventoryStock.decrement(
+              { material_stock: issuedQty },
+              {
+                where: { material_id: item.material_id, warehouse_id },
+                transaction,
+              }
+            );
+          } else {
+            await MaterialRecord.increment(
+              { material_bal_qty: issuedQty },
+              {
+                where: { material_id: item.material_id, cwo_id },
+                transaction,
+              }
+            );
+
+            await InventoryStock.increment(
+              { material_stock: issuedQty },
+              {
+                where: { material_id: item.material_id, warehouse_id },
+                transaction,
+              }
+            );
+
+            await LocatorStock.decrement(
+              { stock_qty: providedQty },
+              {
+                where: { material_id: item.material_id, locator_name },
+                transaction,
+              }
+            );
           }
-        );
+        } else {
+          if (isW2S) {
+            await LocatorStock.increment(
+              { stock_qty: providedQty },
+              {
+                where: { material_id: item.material_id, locator_name },
+                transaction,
+              }
+            );
+          } else {
+            await InventoryStock.increment(
+              { material_stock: issuedQty },
+              {
+                where: { material_id: item.material_id, warehouse_id },
+                transaction,
+              }
+            );
+          }
+        }
       }
     }
 
-    if (mm_status.toLowerCase() === "Received") {
-      for (const item of mmMaterial) {
-        await LocatorStock.increment(
-          { stock_qty: item.material_provided_qty },
-          {
-            where: { material_id: item.material_id, locator_name },
-            transaction,
-          }
-        );
-      }
-    }
     await transaction.commit();
     return res.status(200).json({ message: "Status updated successfully" });
   } catch (err) {
