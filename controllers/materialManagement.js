@@ -137,16 +137,16 @@ const getMMActions = async (req, res) => {
 
     let whereCondition = { mm_status: mmstatus };
 
-    // If the role contains 'inv', filter by transaction_type = 'S2W'
-    if (role.toLowerCase().includes("inv")) {
-      whereCondition = {
-        ...whereCondition,
-        transaction_type: "S2W",
-      };
+    const isAdmin = role.toLowerCase().includes("admin");
+    const isInventory = role.toLowerCase().includes("inv");
+
+    // If role includes 'inv', ignore user filter and filter only S2W
+    if (isInventory) {
+      whereCondition.transaction_type = "S2W";
     }
 
-    // If the role does NOT contain 'admin', apply user-based filtering
-    if (!role.toLowerCase().includes("admin")) {
+    // If not admin and not inv, apply user-based filter
+    else if (!isAdmin) {
       whereCondition = {
         ...whereCondition,
         [Op.or]: [
@@ -160,6 +160,7 @@ const getMMActions = async (req, res) => {
 
     const foundMM = await MaterialManagement.findAll({
       where: whereCondition,
+      logging: console.log,
     });
 
     if (!foundMM || foundMM.length === 0) {
