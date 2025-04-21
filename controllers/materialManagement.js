@@ -137,7 +137,15 @@ const getMMActions = async (req, res) => {
 
     let whereCondition = { mm_status: mmstatus };
 
-    // If the role does NOT contain 'admin', apply filtering based on the user
+    // If the role contains 'inv', filter by transaction_type = 'S2W'
+    if (role.toLowerCase().includes("inv")) {
+      whereCondition = {
+        ...whereCondition,
+        transaction_type: "S2W",
+      };
+    }
+
+    // If the role does NOT contain 'admin', apply user-based filtering
     if (!role.toLowerCase().includes("admin")) {
       whereCondition = {
         ...whereCondition,
