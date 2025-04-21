@@ -135,18 +135,32 @@ const getMMActions = async (req, res) => {
         .json({ message: "User and MM status are required." });
     }
 
-    let whereCondition = { mm_status: mmstatus };
-
     const isAdmin = role.toLowerCase().includes("admin");
     const isInventory = role.toLowerCase().includes("inv");
 
-    // If role includes 'inv', ignore user filter and filter only S2W
-    if (isInventory) {
-      whereCondition.transaction_type = "S2W";
+    let whereCondition = { mm_status: mmstatus };
+
+    // Admins see all with just mm_status
+    if (isAdmin && !isInventory) {
+      // no extra filtering
     }
 
-    // If not admin and not inv, apply user-based filter
-    else if (!isAdmin) {
+    // Inventory role: show S2W OR requests where user is involved
+    else if (isInventory) {
+      whereCondition = {
+        ...whereCondition,
+        [Op.or]: [
+          { transaction_type: "S2W" },
+          { mm_approver1_name: user },
+          { requested_by: user },
+          { mm_approver2_name: user },
+          { mm_approver3_name: user },
+        ],
+      };
+    }
+
+    // Non-admins and non-inventory roles: only user-based filters
+    else {
       whereCondition = {
         ...whereCondition,
         [Op.or]: [
