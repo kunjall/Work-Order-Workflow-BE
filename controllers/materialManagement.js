@@ -315,25 +315,26 @@ const updateApprovalMm = async (req, res) => {
       }
     );
 
-    const isW2S = transaction_type.toLowerCase() === "w2s";
-    const isReceived = mm_status.toLowerCase() === "received";
+    const type = transaction_type.toLowerCase();
+    const status = mm_status.toLowerCase();
 
     if (mmMaterial && mmMaterial.length > 0) {
       for (const item of mmMaterial) {
         const issuedQty = parseFloat(item.issued_qty) || 0;
         const providedQty = parseFloat(item.material_provided_qty) || 0;
+        console.log(mmMaterial);
+        // === W2S Handling ===
+        if (type === "w2s") {
+          if (status !== "received") {
+            // Issuing material: update provided only
+            await MmMaterial.update(
+              { material_provided_qty: issuedQty },
+              {
+                where: { material_id: item.material_id, mm_id },
+                transaction,
+              }
+            );
 
-        // Always update material_provided_qty from issued_qty
-        await MmMaterial.update(
-          { material_provided_qty: issuedQty },
-          {
-            where: { material_id: item.material_id, mm_id },
-            transaction,
-          }
-        );
-
-        if (!isReceived) {
-          if (isW2S) {
             await MaterialRecord.decrement(
               { material_bal_qty: issuedQty },
               {
@@ -350,44 +351,68 @@ const updateApprovalMm = async (req, res) => {
               }
             );
           } else {
-            await MaterialRecord.increment(
-              { material_bal_qty: issuedQty },
+            // Material received: only update received_qty
+            await MmMaterial.update(
+              { material_received_qty: issuedQty },
               {
-                where: { material_id: item.material_id, cwo_id },
+                where: { material_id: item.material_id, mm_id },
                 transaction,
               }
             );
 
-            await InventoryStock.increment(
-              { material_stock: issuedQty },
-              {
-                where: { material_id: item.material_id, warehouse_id },
-                transaction,
-              }
-            );
-
-            await LocatorStock.decrement(
-              { stock_qty: providedQty },
+            await LocatorStock.increment(
+              { stock_qty: issuedQty },
               {
                 where: { material_id: item.material_id, locator_name },
                 transaction,
               }
             );
           }
-        } else {
-          if (isW2S) {
-            await LocatorStock.increment(
-              { stock_qty: providedQty },
+        }
+
+        // === S2W Handling ===
+        else if (type === "s2w") {
+          if (status !== "received") {
+            // Providing: update provided_qty
+            await MmMaterial.update(
+              { material_provided_qty: issuedQty },
+              {
+                where: { material_id: item.material_id, mm_id },
+                transaction,
+              }
+            );
+
+            await LocatorStock.decrement(
+              { stock_qty: issuedQty },
               {
                 where: { material_id: item.material_id, locator_name },
                 transaction,
               }
             );
-          } else {
+          }
+
+          if (status === "received") {
+            // Receiving: update received_qty
+            await MmMaterial.update(
+              { material_received_qty: issuedQty },
+              {
+                where: { material_id: item.material_id, mm_id },
+                transaction,
+              }
+            );
+
             await InventoryStock.increment(
               { material_stock: issuedQty },
               {
                 where: { material_id: item.material_id, warehouse_id },
+                transaction,
+              }
+            );
+
+            await MaterialRecord.increment(
+              { material_bal_qty: issuedQty },
+              {
+                where: { material_id: item.material_id, cwo_id },
                 transaction,
               }
             );
