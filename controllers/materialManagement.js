@@ -174,7 +174,6 @@ const getMMActions = async (req, res) => {
 
     const foundMM = await MaterialManagement.findAll({
       where: whereCondition,
-      logging: console.log,
     });
 
     if (!foundMM || foundMM.length === 0) {
@@ -322,7 +321,6 @@ const updateApprovalMm = async (req, res) => {
       for (const item of mmMaterial) {
         const issuedQty = parseFloat(item.issued_qty) || 0;
         const providedQty = parseFloat(item.material_provided_qty) || 0;
-        console.log(mmMaterial);
         // === W2S Handling ===
         if (type === "w2s") {
           if (status !== "received") {
