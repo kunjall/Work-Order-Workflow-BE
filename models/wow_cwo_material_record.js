@@ -56,7 +56,7 @@ const MaterialRecord = sequelize.define(
       allowNull: true,
     },
     cwo_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     cwo_number: {

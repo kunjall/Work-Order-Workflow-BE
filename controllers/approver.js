@@ -4,7 +4,11 @@ const findReviewer = async (req, res) => {
   try {
     const { type, city } = req.query;
 
-    const whereClause = { type, city };
+    const whereClause = { type };
+
+    if (city) {
+      whereClause.city = city;
+    }
 
     const foundReviewer = await ApprovalMatrix.findAll({
       where: whereClause,

@@ -27,15 +27,18 @@ const findMB = async (req, res) => {
   const { cwo_number, mbstatus } = req.query;
 
   try {
-    const mbRecords = await MbSheet.findAll({
-      where: {
-        cwo_number,
-        mb_status: {
-          [Op.notIn]: [mbstatus, "Approved"], // Exclude exact matches
-          [Op.notLike]: "%Rejected%", // Exclude anything containing "Rejected"
-        },
-      },
-    });
+    const whereClause = {
+      cwo_number,
+    };
+
+    if (mbstatus) {
+      whereClause.mb_status = {
+        [Op.notIn]: [mbstatus, "Approved"],
+        [Op.notLike]: "%Rejected%",
+      };
+    }
+
+    const mbRecords = await MbSheet.findAll({ where: whereClause });
 
     res.status(200).json(mbRecords);
   } catch (error) {

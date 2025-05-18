@@ -10,6 +10,7 @@ const approvalRoutes = require("./routes/approverRoutes");
 const mmRoutes = require("./routes/mmRoutes");
 const mbRoutes = require("./routes/mbRoutes");
 const invoiceRoutes = require("./routes/invoiceRoutes");
+const changeRequestRoutes = require("./routes/changeRequestRoutes");
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use("/", approvalRoutes);
 app.use("/", mmRoutes);
 app.use("/", mbRoutes);
 app.use("/", invoiceRoutes);
+app.use("/change-request", changeRequestRoutes);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`server running on port ${PORT}`);

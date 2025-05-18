@@ -68,7 +68,7 @@ const MotherWorkorder = sequelize.define(
       allowNull: true,
     },
     route_length: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.DOUBLE,
       allowNull: true,
     },
     execution_city: {

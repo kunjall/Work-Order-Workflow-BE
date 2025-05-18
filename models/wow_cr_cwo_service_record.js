@@ -11,65 +11,56 @@ const sequelize = new Sequelize(
   }
 );
 
-const ServiceRecord = sequelize.define(
-  "ServiceRecord",
+const CrCwoServiceRecord = sequelize.define(
+  "CrCwoServiceRecord",
   {
     record_id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
     },
-    mwo_number: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_id: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_desc: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_uom: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_bal_qty: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_wo_qty: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_price: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    service_rate: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    vendor_id: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     cwo_id: {
       type: DataTypes.STRING,
-      allowNull: true,
-    },
-    mwo_id: {
-      type: DataTypes.STRING,
-      allowNull: true,
     },
     cwo_number: {
       type: DataTypes.STRING,
-      allowNull: true,
+    },
+    cr_id: {
+      type: DataTypes.STRING,
+    },
+    service_id: {
+      type: DataTypes.STRING,
+    },
+    service_desc: {
+      type: DataTypes.STRING,
+    },
+    service_unit_price: {
+      type: DataTypes.STRING,
+    },
+    service_uom: {
+      type: DataTypes.STRING,
+    },
+    service_cr_qty: {
+      type: DataTypes.STRING,
+    },
+    service_old_qty: {
+      type: DataTypes.STRING,
+    },
+    is_removed: {
+      type: DataTypes.BOOLEAN,
+    },
+    is_added: {
+      type: DataTypes.BOOLEAN,
+    },
+    old_amount: {
+      type: DataTypes.STRING,
+    },
+    cr_amount: {
+      type: DataTypes.STRING,
     },
   },
   {
-    tableName: "wow-cwo-service-record",
+    tableName: "wow-cr-cwo-service-record",
     schema: "WOW",
     timestamps: false,
   }
@@ -77,5 +68,5 @@ const ServiceRecord = sequelize.define(
 
 module.exports = {
   sequelize,
-  ServiceRecord,
+  CrCwoServiceRecord,
 };
