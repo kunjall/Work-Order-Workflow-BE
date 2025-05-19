@@ -343,6 +343,39 @@ exports.getMwoChangeRequestServices = async (req, res) => {
   }
 };
 
+// Find MWO change requests by MWO number
+exports.findMwoChangeRequestsByMwoNumber = async (req, res) => {
+  try {
+    const { mwo_number } = req.query;
+
+    if (!mwo_number) {
+      return res.status(400).json({
+        success: false,
+        message: "MWO number is required",
+      });
+    }
+
+    // Find change requests based on MWO number
+    const changeRequests = await CrMwo.findAll({
+      where: { mwo_number },
+      order: [["cr_mwo_id", "DESC"]],
+    });
+
+    res.status(200).json({
+      success: true,
+      count: changeRequests.length,
+      data: changeRequests,
+    });
+  } catch (error) {
+    console.error("Error finding MWO change requests by MWO number:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to find MWO change requests",
+      error: error.message,
+    });
+  }
+};
+
 // Update MWO change request status
 exports.updateMwoChangeRequestStatus = async (req, res) => {
   const t = await sequelize.transaction();
