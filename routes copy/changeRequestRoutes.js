@@ -39,6 +39,12 @@ router.post("/mwo/create", changeRequestMwoController.createMwoChangeRequest);
 // Get MWO change requests with optional filters
 router.get("/mwo/find", changeRequestMwoController.getMwoChangeRequests);
 
+// Find MWO change requests by MWO number (specific endpoint)
+router.get(
+  "/mwo/find-by-mwo-number",
+  changeRequestMwoController.findMwoChangeRequestsByMwoNumber
+);
+
 // Get materials for a specific MWO change request
 router.get(
   "/mwo/materials/:cr_id",
