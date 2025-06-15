@@ -63,6 +63,46 @@ const ExpenseRecord = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    expense_status: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    expense_approver1_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    expense_approver1_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    expense_approver2_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    expense_approver2_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    actioned_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    actioned_at: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    created_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    created_at: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    route_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "wow-expense-record",

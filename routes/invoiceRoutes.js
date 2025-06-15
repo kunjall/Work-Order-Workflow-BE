@@ -39,4 +39,16 @@ router.post(
   invoiceController.addExpense
 );
 
+router.get(
+  "/invoice/find-invoice-expenses",
+  authenticateUser,
+  invoiceController.findInvoiceExpenses
+);
+
+router.patch(
+  "/invoice/update-expense-status",
+  authenticateUser,
+  invoiceController.updateInvoiceStatus
+);
+
 module.exports = router;

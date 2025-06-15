@@ -5,6 +5,7 @@ const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
 const workorderRoutes = require("./routes/workorderRoutes");
 const masterRoutes = require("./routes/masterRoutes");
+const masterCrud = require("./routes/masterCrudRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
 const approvalRoutes = require("./routes/approverRoutes");
 const mmRoutes = require("./routes/mmRoutes");
@@ -20,7 +21,7 @@ app.use(
     credentials: true,
   })
 );
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT;
 
 app.use(express.json());
 app.use("/", userRoutes);
@@ -31,8 +32,9 @@ app.use("/", approvalRoutes);
 app.use("/", mmRoutes);
 app.use("/", mbRoutes);
 app.use("/", invoiceRoutes);
+app.use("/", invoiceRoutes);
+app.use("/", masterCrud);
 app.use("/change-request", changeRequestRoutes);
-
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`server running on port ${PORT}`);
 });

@@ -39,7 +39,7 @@ const Customer = sequelize.define(
       allowNull: true,
     },
     customer_mobile: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     customer_email: {
