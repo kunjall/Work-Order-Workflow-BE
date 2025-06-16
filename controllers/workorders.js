@@ -168,12 +168,16 @@ const findAllWorkorder = async (req, res) => {
 };
 
 const findChildWorkorder = async (req, res) => {
-  const { company, internal_manager } = req.query;
+  const { company, internal_manager, role } = req.query;
 
-  const whereCondition =
-    company.toLowerCase() === "tps"
-      ? { cwo_status: "Approved", internal_manager: internal_manager }
-      : { cwo_status: "Approved", vendor_name: company };
+  // Normalize role to lowercase for safe comparison
+  const isAdmin = role?.toLowerCase().includes("admin");
+
+  const whereCondition = isAdmin
+    ? { cwo_status: "Approved" } // Admins see all approved CWOs
+    : company.toLowerCase() === "tps"
+    ? { cwo_status: "Approved", internal_manager: internal_manager }
+    : { cwo_status: "Approved", vendor_name: company };
 
   try {
     const foundChildWorkorder = await ChildWorkorder.findAll({
