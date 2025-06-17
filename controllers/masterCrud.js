@@ -745,23 +745,30 @@ const deleteLocator = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if locator has associated stock
-    const locatorStock = await LocatorStock.findOne({
+    // Get the locator name
+    const locator = await LocatorMaster.findByPk(id, { transaction });
+
+    if (!locator) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Locator not found" });
+    }
+
+    // Check if locator has any materials with stock_qty > 0
+    const locatorStockWithQuantity = await LocatorStock.findOne({
       where: {
-        locator_name: {
-          [Sequelize.Op.eq]: Sequelize.literal(
-            `(SELECT locator_name FROM "WOW"."wow-locator-master" WHERE id = ${id})`
-          ),
+        locator_name: locator.locator_name,
+        stock_qty: {
+          [Sequelize.Op.gt]: 0,
         },
       },
       transaction,
     });
 
-    if (locatorStock) {
+    if (locatorStockWithQuantity) {
       await transaction.rollback();
       return res.status(400).json({
         message:
-          "Cannot delete locator with associated stock. Please remove stock first.",
+          "Cannot delete locator with materials that have stock quantity greater than 0. Please remove or transfer stock first.",
       });
     }
 
