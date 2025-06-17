@@ -174,7 +174,7 @@ const findInvoiceExpenses = async (req, res) => {
       whereClause.expense_status = invoicestatus;
     }
 
-    if (role !== "admin") {
+    if (!role.includes("admin")) {
       whereClause[Op.or] = [
         { created_by: user },
         { expense_approver1_name: user },
