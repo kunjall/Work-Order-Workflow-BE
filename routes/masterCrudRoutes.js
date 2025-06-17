@@ -220,4 +220,17 @@ router.delete(
   masterCrudController.deleteClientWarehouse
 );
 
+// Routes for dropdown data
+router.get(
+  "/master/unique-customer-names",
+  authenticateUser,
+  masterCrudController.getUniqueCustomerNames
+);
+
+router.get(
+  "/master/unique-vendor-names",
+  authenticateUser,
+  masterCrudController.getUniqueVendorNames
+);
+
 module.exports = router;

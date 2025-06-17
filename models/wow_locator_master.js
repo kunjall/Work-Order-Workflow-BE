@@ -39,6 +39,10 @@ const LocatorMaster = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    customer_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "wow-locator-master",

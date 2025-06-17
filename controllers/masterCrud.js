@@ -7,6 +7,7 @@ const { LocatorMaster } = require("../models/wow_locator_master.js");
 const { LocatorStock } = require("../models/wow_locator_stock.js");
 const { WarehouseMaster } = require("../models/wow_warehouse_master.js");
 const { Customer } = require("../models/wow_customer.js");
+const { User } = require("../models/wow_user_login.js");
 const {
   ClientWarehouseMaster,
 } = require("../models/wow_client_warehouse_master.js");
@@ -592,8 +593,14 @@ const createLocator = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const { vendor_name, locator_name, type, internal_external, city } =
-      req.body;
+    const {
+      vendor_name,
+      locator_name,
+      type,
+      internal_external,
+      city,
+      customer_name,
+    } = req.body;
 
     // Check if locator name already exists
     const existingLocator = await LocatorMaster.findOne({
@@ -625,6 +632,7 @@ const createLocator = async (req, res) => {
         type,
         internal_external,
         city,
+        customer_name,
       },
       { transaction }
     );
@@ -673,8 +681,14 @@ const updateLocator = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const { vendor_name, locator_name, type, internal_external, city } =
-      req.body;
+    const {
+      vendor_name,
+      locator_name,
+      type,
+      internal_external,
+      city,
+      customer_name,
+    } = req.body;
 
     // Check if locator name already exists (excluding the current locator)
     if (locator_name) {
@@ -702,6 +716,7 @@ const updateLocator = async (req, res) => {
         type,
         internal_external,
         city,
+        customer_name,
       },
       {
         where: { id },
@@ -1230,6 +1245,77 @@ const deleteClientWarehouse = async (req, res) => {
   }
 };
 
+const getUniqueCustomerNames = async (req, res) => {
+  try {
+    const customers = await Customer.findAll({
+      attributes: [
+        [
+          Sequelize.fn("DISTINCT", Sequelize.col("customer_name")),
+          "customer_name",
+        ],
+      ],
+      where: {
+        customer_name: {
+          [Sequelize.Op.not]: null,
+          [Sequelize.Op.ne]: "",
+        },
+      },
+      order: [["customer_name", "ASC"]],
+    });
+
+    const customerNames = customers.map((customer) => customer.customer_name);
+    res.status(200).json(customerNames);
+  } catch (error) {
+    console.error("Error fetching unique customer names:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Get unique vendor names from both user_login and vendors_master
+const getUniqueVendorNames = async (req, res) => {
+  try {
+    // Get unique names from user_login table
+    const userNames = await User.findAll({
+      attributes: [[Sequelize.fn("DISTINCT", Sequelize.col("name")), "name"]],
+      where: {
+        name: {
+          [Sequelize.Op.not]: null,
+          [Sequelize.Op.ne]: "",
+        },
+      },
+      order: [["name", "ASC"]],
+    });
+
+    // Get unique vendor_names from vendors_master table
+    const vendorNames = await VendorsMaster.findAll({
+      attributes: [
+        [Sequelize.fn("DISTINCT", Sequelize.col("vendor_name")), "vendor_name"],
+      ],
+      where: {
+        vendor_name: {
+          [Sequelize.Op.not]: null,
+          [Sequelize.Op.ne]: "",
+        },
+      },
+      order: [["vendor_name", "ASC"]],
+    });
+
+    // Combine and deduplicate the names
+    const userNamesList = userNames.map((user) => user.name);
+    const vendorNamesList = vendorNames.map((vendor) => vendor.vendor_name);
+
+    // Combine both lists and remove duplicates
+    const combinedNames = [
+      ...new Set([...userNamesList, ...vendorNamesList]),
+    ].sort();
+
+    res.status(200).json(combinedNames);
+  } catch (error) {
+    console.error("Error fetching unique vendor names:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   getAllMaterials,
   getMaterialById,
@@ -1266,4 +1352,8 @@ module.exports = {
   createClientWarehouse,
   updateClientWarehouse,
   deleteClientWarehouse,
+  getUniqueCustomerNames,
+  getUniqueVendorNames,
 };
+
+// Get unique customer names for dropdown
