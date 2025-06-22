@@ -125,10 +125,7 @@ const MaterialManagement = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    intracity_flag: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-    },
+
     tps_dc_date: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
