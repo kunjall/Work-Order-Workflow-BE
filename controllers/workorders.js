@@ -471,6 +471,7 @@ const updateMwoStatusDetails = async (req, res) => {
       mwo_status,
       approved_at,
       approved_by,
+      attachment_link,
       approver_comments,
       mwo_approver1_email,
       mwo_approver1_name,
@@ -485,6 +486,7 @@ const updateMwoStatusDetails = async (req, res) => {
     const updateData = {};
 
     if (mwo_status) updateData.mwo_status = mwo_status;
+    if (attachment_link) updateData.attachment_link = attachment_link;
     if (approved_at) updateData.approved_at = approved_at;
     if (approved_by) updateData.approved_by = approved_by;
     if (approver_comments) updateData.approver_comments = approver_comments;

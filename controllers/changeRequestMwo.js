@@ -56,64 +56,64 @@ exports.createMwoChangeRequest = async (req, res) => {
     });
 
     // For each material in materialItems, check if CWO quantities exceed the new quantity
-    // for (const material of materialItems) {
-    //   if (material.is_removed) continue; // Skip removed materials
+    for (const material of materialItems) {
+      if (material.is_removed) continue; // Skip removed materials
 
-    //   // Get total quantity used in CWOs
-    //   let totalCwoQty = 0;
-    //   for (const cwo of childWorkorders) {
-    //     const cwoMaterial = await MaterialRecord.findOne({
-    //       where: {
-    //         cwo_id: cwo.cwo_id,
-    //         material_id: material.material_id,
-    //       },
-    //     });
-    //     if (cwoMaterial) {
-    //       totalCwoQty += Number(cwoMaterial.material_wo_qty || 0);
-    //     }
-    //   }
+      // Get total quantity used in CWOs
+      let totalCwoQty = 0;
+      for (const cwo of childWorkorders) {
+        const cwoMaterial = await MaterialRecord.findOne({
+          where: {
+            cwo_id: cwo.cwo_id,
+            material_id: material.material_id,
+          },
+        });
+        if (cwoMaterial) {
+          totalCwoQty += Number(cwoMaterial.material_wo_qty || 0);
+        }
+      }
 
-    //   // If new quantity is less than total CWO quantity, return error
-    //   if (Number(material.material_cr_qty) < totalCwoQty) {
-    //     await t.rollback();
-    //     return res.status(400).json({
-    //       success: false,
-    //       message: `Material ${material.material_id} has CWOs filled for a higher quantity (${totalCwoQty})`,
-    //     });
-    //   }
+      // If new quantity is less than total CWO quantity, return error
+      if (Number(material.material_cr_qty) < totalCwoQty) {
+        await t.rollback();
+        return res.status(400).json({
+          success: false,
+          message: `Material ${material.material_id} (${material.material_desc}) has CWOs filled for a higher quantity (${totalCwoQty}) than the new total (${material.material_cr_qty}). Please update CWO values first before creating this change request.`,
+        });
+      }
 
-    //   // Get the material from the MWO to check available quantity
-    //   const mwoMaterial = await MotherMaterialRecord.findOne({
-    //     where: {
-    //       mwo_id: String(mwo_id),
-    //       material_id: material.material_id,
-    //     },
-    //   });
+      // Get the material from the MWO to check available quantity
+      const mwoMaterial = await MotherMaterialRecord.findOne({
+        where: {
+          mwo_id: String(mwo_id),
+          material_id: material.material_id,
+        },
+      });
 
-    //   if (mwoMaterial && !material.is_added) {
-    //     // Calculate available quantity in MWO
-    //     const mwoQty = Number(mwoMaterial.material_wo_qty || 0);
-    //     const availableQty = mwoQty;
+      if (mwoMaterial && !material.is_added) {
+        // Calculate available quantity in MWO
+        const mwoQty = Number(mwoMaterial.material_wo_qty || 0);
+        const availableQty = mwoQty;
 
-    //     // Commented out material quantity check
-    //     /*
-    //   if (Number(material.material_cr_qty) > availableQty) {
-    //     console.log(
-    //       `Material ${material.material_id} quantity exceeds available quantity in MWO`
-    //     );
-    //     console.log(
-    //       `MWO qty: ${mwoQty}, Available: ${availableQty}, Requested: ${material.material_cr_qty}`
-    //     );
+        // Commented out material quantity check
+        /*
+        if (Number(material.material_cr_qty) > availableQty) {
+          console.log(
+            `Material ${material.material_id} quantity exceeds available quantity in MWO`
+          );
+          console.log(
+            `MWO qty: ${mwoQty}, Available: ${availableQty}, Requested: ${material.material_cr_qty}`
+          );
 
-    //     await t.rollback();
-    //     return res.status(400).json({
-    //       success: false,
-    //       message: `Material ${material.material_id} quantity (${material.material_cr_qty}) exceeds available quantity in MWO (${availableQty})`,
-    //     });
-    //   }
-    //   */
-    //   }
-    // }
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            message: `Material ${material.material_id} quantity (${material.material_cr_qty}) exceeds available quantity in MWO (${availableQty})`,
+          });
+        }
+        */
+      }
+    }
 
     // Similar check for services
     for (const service of serviceItems) {
@@ -121,26 +121,26 @@ exports.createMwoChangeRequest = async (req, res) => {
 
       // Get total quantity used in CWOs
       let totalCwoQty = 0;
-      // for (const cwo of childWorkorders) {
-      //   const cwoService = await ServiceRecord.findOne({
-      //     where: {
-      //       cwo_id: cwo.cwo_id,
-      //       service_id: service.service_id,
-      //     },
-      //   });
-      //   if (cwoService) {
-      //     totalCwoQty += Number(cwoService.service_wo_qty || 0);
-      //   }
-      // }
+      for (const cwo of childWorkorders) {
+        const cwoService = await ServiceRecord.findOne({
+          where: {
+            cwo_id: cwo.cwo_id,
+            service_id: service.service_id,
+          },
+        });
+        if (cwoService) {
+          totalCwoQty += Number(cwoService.service_wo_qty || 0);
+        }
+      }
 
       // If new quantity is less than total CWO quantity, return error
-      // if (Number(service.service_cr_qty) < totalCwoQty) {
-      //   await t.rollback();
-      //   return res.status(400).json({
-      //     success: false,
-      //     message: `Service ${service.service_id} has CWOs filled for a higher quantity (${totalCwoQty})`,
-      //   });
-      // }
+      if (Number(service.service_cr_qty) < totalCwoQty) {
+        await t.rollback();
+        return res.status(400).json({
+          success: false,
+          message: `Service ${service.service_id} (${service.service_desc}) has CWOs filled for a higher quantity (${totalCwoQty}) than the new total (${service.service_cr_qty}). Please update CWO values first before creating this change request.`,
+        });
+      }
 
       // Get the service from the MWO to check available quantity
       const mwoService = await MotherServiceRecord.findOne({
@@ -498,11 +498,42 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
             // If material exists, update its quantity and price
 
             try {
+              // Calculate how much quantity has been used by CWOs
+              const childWorkorders = await ChildWorkorder.findAll({
+                where: { mwo_id: mwo_id },
+                transaction: t,
+              });
+
+              let totalUsedQty = 0;
+              for (const cwo of childWorkorders) {
+                const cwoMaterial = await MaterialRecord.findOne({
+                  where: {
+                    cwo_id: cwo.cwo_id,
+                    material_id: material.material_id,
+                  },
+                  transaction: t,
+                });
+                if (cwoMaterial) {
+                  totalUsedQty += Number(cwoMaterial.material_wo_qty || 0);
+                }
+              }
+
+              // Calculate new balance quantity
+              const newTotalQty = Number(material.material_cr_qty);
+              const newBalQty = newTotalQty - totalUsedQty;
+
+              // Check if balance would be negative
+              if (newBalQty < 0) {
+                throw new Error(
+                  `Material ${material.material_id} (${material.material_desc}) has CWOs filled for a higher quantity (${totalUsedQty}) than the new total (${newTotalQty}). Please update CWO values first before approving this change request.`
+                );
+              }
+
               await existingMaterial.update(
                 {
                   material_wo_qty: material.material_cr_qty,
                   material_price: material.cr_amount,
-                  material_bal_qty: material.material_cr_qty, // Update balance qty as well
+                  material_bal_qty: newBalQty, // Set balance as new total minus used
                 },
                 { transaction: t }
               );
@@ -576,11 +607,42 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
             // If service exists, update its quantity and price
 
             try {
+              // Calculate how much quantity has been used by CWOs
+              const childWorkorders = await ChildWorkorder.findAll({
+                where: { mwo_id: mwo_id },
+                transaction: t,
+              });
+
+              let totalUsedQty = 0;
+              for (const cwo of childWorkorders) {
+                const cwoService = await ServiceRecord.findOne({
+                  where: {
+                    cwo_id: cwo.cwo_id,
+                    service_id: service.service_id,
+                  },
+                  transaction: t,
+                });
+                if (cwoService) {
+                  totalUsedQty += Number(cwoService.service_wo_qty || 0);
+                }
+              }
+
+              // Calculate new balance quantity
+              const newTotalQty = Number(service.service_cr_qty);
+              const newBalQty = newTotalQty - totalUsedQty;
+
+              // Check if balance would be negative
+              if (newBalQty < 0) {
+                throw new Error(
+                  `Service ${service.service_id} (${service.service_desc}) has CWOs filled for a higher quantity (${totalUsedQty}) than the new total (${newTotalQty}). Please update CWO values first before approving this change request.`
+                );
+              }
+
               await existingService.update(
                 {
                   service_wo_qty: service.service_cr_qty,
                   service_price: service.cr_amount,
-                  service_bal_qty: service.service_cr_qty, // Update balance qty as well
+                  service_bal_qty: newBalQty, // Set balance as new total minus used
                 },
                 { transaction: t }
               );

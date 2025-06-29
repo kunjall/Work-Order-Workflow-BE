@@ -151,6 +151,10 @@ const MotherWorkorder = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    attachment_link: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "wow-mother-workorder",
