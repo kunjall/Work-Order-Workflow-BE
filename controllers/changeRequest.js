@@ -32,7 +32,7 @@ exports.createChangeRequest = async (req, res) => {
     // Check if there's an existing change request that's not approved
     const existingCR = await CrCwo.findOne({
       where: {
-        cwo_id: String(cwo_id),
+        cwo_id: cwo_id.toString(),
         cr_status: {
           [Op.ne]: "Approved",
         },
@@ -49,7 +49,7 @@ exports.createChangeRequest = async (req, res) => {
 
     // Get the CWO details to retrieve mwo_id
     const childWorkorder = await ChildWorkorder.findOne({
-      where: { cwo_id: cwo_id },
+      where: { cwo_id: cwo_id.toString() },
     });
 
     if (!childWorkorder) {
@@ -70,19 +70,56 @@ exports.createChangeRequest = async (req, res) => {
       // Get the material from the MWO
       const mwoMaterial = await MotherMaterialRecord.findOne({
         where: {
-          mwo_id: String(mwo_id),
+          mwo_id: mwo_id.toString(),
           material_id: material.material_id,
         },
       });
+
+      // Get the material from the CWO to check MB and MRS quantities
+      const cwoMaterial = await MaterialRecord.findOne({
+        where: {
+          cwo_id: cwo_id.toString(),
+          material_id: material.material_id,
+        },
+      });
+
+      // Check if MB or MRS quantities would exceed the new quantity
+      if (cwoMaterial) {
+        const mbQty = Number(cwoMaterial.material_mb_qty || 0);
+        const newQty = Number(material.material_cr_qty || 0);
+
+        // Check if MB quantity exceeds the new quantity
+        if (mbQty > newQty) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            message: `Material ${material.material_id} (${material.material_desc}) has MB quantity (${mbQty}) higher than the new quantity (${newQty}). Cannot reduce quantity below MB quantity.`,
+          });
+        }
+
+        // Get MRS quantity from the database
+        // This would require querying the MRS records for this material and CWO
+        // For now, we'll use the material_mrs_qty field if it exists
+        const mrsQty = Number(cwoMaterial.material_mrs_qty || 0);
+
+        // Check if MRS quantity exceeds the new quantity
+        if (mrsQty > newQty) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            message: `Material ${material.material_id} (${material.material_desc}) has MRS quantity (${mrsQty}) higher than the new quantity (${newQty}). Cannot reduce quantity below MRS quantity.`,
+          });
+        }
+      }
 
       if (mwoMaterial) {
         // Get total quantity used in other CWOs
         let totalOtherCwoQty = 0;
         const otherCwos = await ChildWorkorder.findAll({
           where: {
-            mwo_id: String(mwo_id),
+            mwo_id: mwo_id.toString(),
             cwo_id: {
-              [Op.ne]: cwo_id, // Exclude the current CWO
+              [Op.ne]: cwo_id.toString(), // Exclude the current CWO
             },
           },
         });
@@ -90,7 +127,7 @@ exports.createChangeRequest = async (req, res) => {
         for (const otherCwo of otherCwos) {
           const otherCwoMaterial = await MaterialRecord.findOne({
             where: {
-              cwo_id: otherCwo.cwo_id,
+              cwo_id: otherCwo.cwo_id.toString(),
               material_id: material.material_id,
             },
           });
@@ -125,10 +162,47 @@ exports.createChangeRequest = async (req, res) => {
     for (const service of serviceItems) {
       if (service.is_removed) continue; // Skip removed services
 
+      // Get the service from the CWO to check MB and MRS quantities
+      const cwoService = await ServiceRecord.findOne({
+        where: {
+          cwo_id: cwo_id.toString(),
+          service_id: service.service_id,
+        },
+      });
+
+      // Check if MB or MRS quantities would exceed the new quantity
+      if (cwoService) {
+        const mbQty = Number(cwoService.service_mb_qty || 0);
+        const newQty = Number(service.service_cr_qty || 0);
+
+        // Check if MB quantity exceeds the new quantity
+        if (mbQty > newQty) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            message: `Service ${service.service_id} (${service.service_desc}) has MB quantity (${mbQty}) higher than the new quantity (${newQty}). Cannot reduce quantity below MB quantity.`,
+          });
+        }
+
+        // Get MRS quantity from the database
+        // This would require querying the MRS records for this service and CWO
+        // For now, we'll use the service_mrs_qty field if it exists
+        const mrsQty = Number(cwoService.service_mrs_qty || 0);
+
+        // Check if MRS quantity exceeds the new quantity
+        if (mrsQty > newQty) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            message: `Service ${service.service_id} (${service.service_desc}) has MRS quantity (${mrsQty}) higher than the new quantity (${newQty}). Cannot reduce quantity below MRS quantity.`,
+          });
+        }
+      }
+
       // Get the service from the MWO
       const mwoService = await MotherServiceRecord.findOne({
         where: {
-          mwo_id: String(mwo_id),
+          mwo_id: mwo_id.toString(),
           service_id: service.service_id,
         },
       });
@@ -138,9 +212,9 @@ exports.createChangeRequest = async (req, res) => {
         let totalOtherCwoQty = 0;
         const otherCwos = await ChildWorkorder.findAll({
           where: {
-            mwo_id: String(mwo_id),
+            mwo_id: mwo_id.toString(),
             cwo_id: {
-              [Op.ne]: cwo_id, // Exclude the current CWO
+              [Op.ne]: cwo_id.toString(), // Exclude the current CWO
             },
           },
         });
@@ -148,7 +222,7 @@ exports.createChangeRequest = async (req, res) => {
         for (const otherCwo of otherCwos) {
           const otherCwoService = await ServiceRecord.findOne({
             where: {
-              cwo_id: otherCwo.cwo_id,
+              cwo_id: otherCwo.cwo_id.toString(),
               service_id: service.service_id,
             },
           });
@@ -194,7 +268,7 @@ exports.createChangeRequest = async (req, res) => {
         cr_approver_name,
         created_by,
         created_at,
-        cwo_id,
+        cwo_id: cwo_id.toString(),
       },
       { transaction: t }
     );
@@ -277,7 +351,7 @@ exports.getChangeRequests = async (req, res) => {
       ];
     }
     if (created_by) whereClause.created_by = created_by;
-    if (cwo_id) whereClause.cwo_id = cwo_id;
+    if (cwo_id) whereClause.cwo_id = cwo_id.toString();
 
     // Find change requests based on filters
     const changeRequests = await CrCwo.findAll({
@@ -438,7 +512,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
 
       // Get the CWO details to retrieve mwo_id, mwo_number, and vendor_id
       const childWorkorder = await ChildWorkorder.findOne({
-        where: { cwo_id: cwo_id },
+        where: { cwo_id: cwo_id.toString() },
         transaction: t,
       });
 
@@ -475,7 +549,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
             const deleteResult = await MaterialRecord.destroy({
               where: {
                 material_id: material.material_id,
-                cwo_id: cwo_id,
+                cwo_id: cwo_id.toString(),
               },
               transaction: t,
             });
@@ -491,7 +565,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
           const existingMaterial = await MaterialRecord.findOne({
             where: {
               material_id: material.material_id,
-              cwo_id: String(cwo_id),
+              cwo_id: cwo_id.toString(),
             },
             transaction: t,
           });
@@ -561,7 +635,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
             const deleteResult = await ServiceRecord.destroy({
               where: {
                 service_id: service.service_id,
-                cwo_id: cwo_id,
+                cwo_id: cwo_id.toString(),
               },
               transaction: t,
             });
@@ -577,7 +651,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
           const existingService = await ServiceRecord.findOne({
             where: {
               service_id: service.service_id,
-              cwo_id: String(cwo_id),
+              cwo_id: cwo_id.toString(),
             },
             transaction: t,
           });
@@ -644,7 +718,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
 
       // Calculate total material cost
       const allMaterials = await MaterialRecord.findAll({
-        where: { cwo_id: String(cwo_id) },
+        where: { cwo_id: cwo_id.toString() },
         transaction: t,
       });
 
@@ -655,7 +729,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
 
       // Calculate total service cost
       const allServices = await ServiceRecord.findAll({
-        where: { cwo_id: String(cwo_id) },
+        where: { cwo_id: cwo_id.toString() },
         transaction: t,
       });
 
@@ -672,7 +746,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
             total_service_cost: totalServiceCost.toFixed(2),
           },
           {
-            where: { cwo_id: String(cwo_id) },
+            where: { cwo_id: cwo_id.toString() },
             transaction: t,
           }
         );
@@ -685,7 +759,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
       try {
         // Get all materials in the MWO
         const mwoMaterials = await MotherMaterialRecord.findAll({
-          where: { mwo_id: mwo_id },
+          where: { mwo_id: mwo_id.toString() },
           transaction: t,
         });
 
@@ -693,7 +767,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
         for (const mwoMaterial of mwoMaterials) {
           // Get all CWOs for this MWO
           const allCwos = await ChildWorkorder.findAll({
-            where: { mwo_id: mwo_id },
+            where: { mwo_id: mwo_id.toString() },
             transaction: t,
           });
 
@@ -702,7 +776,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
           for (const cwo of allCwos) {
             const cwoMaterial = await MaterialRecord.findOne({
               where: {
-                cwo_id: String(cwo.cwo_id),
+                cwo_id: cwo.cwo_id.toString(),
                 material_id: mwoMaterial.material_id,
               },
               transaction: t,
@@ -737,7 +811,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
       try {
         // Get all services in the MWO
         const mwoServices = await MotherServiceRecord.findAll({
-          where: { mwo_id: mwo_id },
+          where: { mwo_id: mwo_id.toString() },
           transaction: t,
         });
 
@@ -745,7 +819,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
         for (const mwoService of mwoServices) {
           // Get all CWOs for this MWO
           const allCwos = await ChildWorkorder.findAll({
-            where: { mwo_id: mwo_id },
+            where: { mwo_id: mwo_id.toString() },
             transaction: t,
           });
 
@@ -754,7 +828,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
           for (const cwo of allCwos) {
             const cwoService = await ServiceRecord.findOne({
               where: {
-                cwo_id: String(cwo.cwo_id),
+                cwo_id: cwo.cwo_id.toString(),
                 service_id: mwoService.service_id,
               },
               transaction: t,

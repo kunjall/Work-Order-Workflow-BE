@@ -334,6 +334,17 @@ const updateApprovalMb = async (req, res) => {
           }
         );
       }
+    } else if (mb_status.toLowerCase().includes("rejected by billing spoc")) {
+      // If rejected by Billing SPOC, add the MB quantities back to the locator
+      for (const item of mbMaterial) {
+        await LocatorStock.increment(
+          { stock_qty: item.material_log_qty },
+          {
+            where: { material_id: item.material_id, locator_name },
+            transaction,
+          }
+        );
+      }
     }
     await transaction.commit();
     return res.status(200).json({ message: "Status updated successfully" });
