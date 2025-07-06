@@ -491,7 +491,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
           const existingMaterial = await MaterialRecord.findOne({
             where: {
               material_id: material.material_id,
-              cwo_id: cwo_id,
+              cwo_id: String(cwo_id),
             },
             transaction: t,
           });
@@ -577,7 +577,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
           const existingService = await ServiceRecord.findOne({
             where: {
               service_id: service.service_id,
-              cwo_id: cwo_id,
+              cwo_id: String(cwo_id),
             },
             transaction: t,
           });
@@ -644,7 +644,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
 
       // Calculate total material cost
       const allMaterials = await MaterialRecord.findAll({
-        where: { cwo_id: cwo_id },
+        where: { cwo_id: String(cwo_id) },
         transaction: t,
       });
 
@@ -655,7 +655,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
 
       // Calculate total service cost
       const allServices = await ServiceRecord.findAll({
-        where: { cwo_id: cwo_id },
+        where: { cwo_id: String(cwo_id) },
         transaction: t,
       });
 
@@ -672,12 +672,116 @@ exports.updateChangeRequestStatus = async (req, res) => {
             total_service_cost: totalServiceCost.toFixed(2),
           },
           {
-            where: { cwo_id: cwo_id },
+            where: { cwo_id: String(cwo_id) },
             transaction: t,
           }
         );
       } catch (error) {
         console.error(`Error updating CWO ${cwo_id} totals:`, error);
+        throw error; // Re-throw to trigger transaction rollback
+      }
+
+      // Update MWO balance quantities for materials
+      try {
+        // Get all materials in the MWO
+        const mwoMaterials = await MotherMaterialRecord.findAll({
+          where: { mwo_id: mwo_id },
+          transaction: t,
+        });
+
+        // For each MWO material, calculate the total used by all CWOs and update balance
+        for (const mwoMaterial of mwoMaterials) {
+          // Get all CWOs for this MWO
+          const allCwos = await ChildWorkorder.findAll({
+            where: { mwo_id: mwo_id },
+            transaction: t,
+          });
+
+          // Calculate total quantity used by all CWOs for this material
+          let totalUsedQty = 0;
+          for (const cwo of allCwos) {
+            const cwoMaterial = await MaterialRecord.findOne({
+              where: {
+                cwo_id: String(cwo.cwo_id),
+                material_id: mwoMaterial.material_id,
+              },
+              transaction: t,
+            });
+            if (cwoMaterial) {
+              totalUsedQty += Number(cwoMaterial.material_wo_qty || 0);
+            }
+          }
+
+          // Calculate new balance quantity
+          const mwoTotalQty = Number(mwoMaterial.material_wo_qty || 0);
+          const newBalQty = mwoTotalQty - totalUsedQty;
+
+          // Update MWO material balance quantity
+          await mwoMaterial.update(
+            {
+              material_bal_qty: newBalQty,
+            },
+            { transaction: t }
+          );
+
+          console.log(
+            `Updated MWO material ${mwoMaterial.material_id} balance: Total=${mwoTotalQty}, Used=${totalUsedQty}, New Balance=${newBalQty}`
+          );
+        }
+      } catch (error) {
+        console.error(`Error updating MWO material balances:`, error);
+        throw error; // Re-throw to trigger transaction rollback
+      }
+
+      // Update MWO balance quantities for services
+      try {
+        // Get all services in the MWO
+        const mwoServices = await MotherServiceRecord.findAll({
+          where: { mwo_id: mwo_id },
+          transaction: t,
+        });
+
+        // For each MWO service, calculate the total used by all CWOs and update balance
+        for (const mwoService of mwoServices) {
+          // Get all CWOs for this MWO
+          const allCwos = await ChildWorkorder.findAll({
+            where: { mwo_id: mwo_id },
+            transaction: t,
+          });
+
+          // Calculate total quantity used by all CWOs for this service
+          let totalUsedQty = 0;
+          for (const cwo of allCwos) {
+            const cwoService = await ServiceRecord.findOne({
+              where: {
+                cwo_id: String(cwo.cwo_id),
+                service_id: mwoService.service_id,
+              },
+              transaction: t,
+            });
+            if (cwoService) {
+              totalUsedQty += Number(cwoService.service_wo_qty || 0);
+            }
+          }
+
+          // Calculate new balance quantity
+          const mwoTotalQty = Number(mwoService.service_wo_qty || 0);
+          const newBalQty = mwoTotalQty - totalUsedQty;
+
+          // Update MWO service balance quantity
+          await mwoService.update(
+            {
+              service_bal_qty: newBalQty,
+            },
+            { transaction: t }
+          );
+
+          console.log(
+            `Updated MWO service ${mwoService.service_id} balance: Total=${mwoTotalQty}, Used=${totalUsedQty}, New Balance=${newBalQty}`
+          );
+        }
+      } catch (error) {
+        console.error(`Error updating MWO service balances:`, error);
         throw error; // Re-throw to trigger transaction rollback
       }
     }
