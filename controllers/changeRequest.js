@@ -32,7 +32,7 @@ exports.createChangeRequest = async (req, res) => {
     // Check if there's an existing change request that's not approved
     const existingCR = await CrCwo.findOne({
       where: {
-        cwo_id: cwo_id,
+        cwo_id: String(cwo_id),
         cr_status: {
           [Op.ne]: "Approved",
         },
