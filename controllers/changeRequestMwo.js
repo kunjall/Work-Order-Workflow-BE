@@ -473,7 +473,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
             const deleteResult = await MotherMaterialRecord.destroy({
               where: {
                 material_id: material.material_id,
-                mwo_id: mwo_id,
+                mwo_id: String(mwo_id),
               },
               transaction: t,
             });
@@ -489,7 +489,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
           const existingMaterial = await MotherMaterialRecord.findOne({
             where: {
               material_id: material.material_id,
-              mwo_id: mwo_id,
+              mwo_id: String(mwo_id),
             },
             transaction: t,
           });
@@ -500,7 +500,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
             try {
               // Calculate how much quantity has been used by CWOs
               const childWorkorders = await ChildWorkorder.findAll({
-                where: { mwo_id: mwo_id },
+                where: { mwo_id: String(mwo_id) },
                 transaction: t,
               });
 
@@ -582,7 +582,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
             const deleteResult = await MotherServiceRecord.destroy({
               where: {
                 service_id: service.service_id,
-                mwo_id: mwo_id,
+                mwo_id: String(mwo_id),
               },
               transaction: t,
             });
@@ -598,7 +598,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
           const existingService = await MotherServiceRecord.findOne({
             where: {
               service_id: service.service_id,
-              mwo_id: mwo_id,
+              mwo_id: String(mwo_id),
             },
             transaction: t,
           });
@@ -609,7 +609,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
             try {
               // Calculate how much quantity has been used by CWOs
               const childWorkorders = await ChildWorkorder.findAll({
-                where: { mwo_id: mwo_id },
+                where: { mwo_id: String(mwo_id) },
                 transaction: t,
               });
 
@@ -689,7 +689,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
 
       // Calculate total material cost
       const allMaterials = await MotherMaterialRecord.findAll({
-        where: { mwo_id: mwo_id },
+        where: { mwo_id: String(mwo_id) },
         transaction: t,
       });
 
@@ -700,7 +700,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
 
       // Calculate total service cost
       const allServices = await MotherServiceRecord.findAll({
-        where: { mwo_id: mwo_id },
+        where: { mwo_id: String(mwo_id) },
         transaction: t,
       });
 
@@ -717,7 +717,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
             total_service_cost: totalServiceCost.toFixed(2),
           },
           {
-            where: { mwo_id: mwo_id },
+            where: { mwo_id: String(mwo_id) },
             transaction: t,
           }
         );
