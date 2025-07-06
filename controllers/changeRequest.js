@@ -270,8 +270,12 @@ exports.getChangeRequests = async (req, res) => {
     if (cwo_number) whereClause.cwo_number = cwo_number;
     if (cr_status) whereClause.cr_status = cr_status;
     if (customer_name) whereClause.customer_name = customer_name;
-    if (cr_approver_email) whereClause.cr_approver_email = cr_approver_email;
-    if (cr_approver_email) whereClause.cr_approver2_email = cr_approver_email;
+    if (cr_approver_email) {
+      whereClause[Op.or] = [
+        { cr_approver_email: cr_approver_email },
+        { cr_approver2_email: cr_approver_email },
+      ];
+    }
     if (created_by) whereClause.created_by = created_by;
     if (cwo_id) whereClause.cwo_id = cwo_id;
 
