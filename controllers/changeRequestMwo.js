@@ -64,7 +64,7 @@ exports.createMwoChangeRequest = async (req, res) => {
       for (const cwo of childWorkorders) {
         const cwoMaterial = await MaterialRecord.findOne({
           where: {
-            cwo_id: cwo.cwo_id,
+            cwo_id: String(cwo.cwo_id),
             material_id: material.material_id,
           },
         });
@@ -124,7 +124,7 @@ exports.createMwoChangeRequest = async (req, res) => {
       for (const cwo of childWorkorders) {
         const cwoService = await ServiceRecord.findOne({
           where: {
-            cwo_id: cwo.cwo_id,
+            cwo_id: String(cwo.cwo_id),
             service_id: service.service_id,
           },
         });
@@ -508,7 +508,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
               for (const cwo of childWorkorders) {
                 const cwoMaterial = await MaterialRecord.findOne({
                   where: {
-                    cwo_id: cwo.cwo_id,
+                    cwo_id: String(cwo.cwo_id),
                     material_id: material.material_id,
                   },
                   transaction: t,
@@ -617,7 +617,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
               for (const cwo of childWorkorders) {
                 const cwoService = await ServiceRecord.findOne({
                   where: {
-                    cwo_id: cwo.cwo_id,
+                    cwo_id: String(cwo.cwo_id),
                     service_id: service.service_id,
                   },
                   transaction: t,
