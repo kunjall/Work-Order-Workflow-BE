@@ -92,7 +92,7 @@ const createMotherWorkorder = async (req, res) => {
       for (const material of materialRecords) {
         await MotherMaterialRecord.create(
           {
-            record_id: `${mwo_number}_${material.materialCode}`,
+            record_id: `${newWorkorder.mwo_id}_${material.materialCode}`,
             mwo_number,
             material_id: material.materialCode,
             material_desc: material.itemName,
@@ -112,7 +112,7 @@ const createMotherWorkorder = async (req, res) => {
       for (const service of serviceRecords) {
         await MotherServiceRecord.create(
           {
-            record_id: `${mwo_number}_${service.serviceId}`,
+            record_id: `${newWorkorder.mwo_id}_${service.serviceId}`,
             mwo_number,
             service_id: service.serviceId,
             service_desc: service.serviceDescription,
@@ -845,6 +845,35 @@ const rejectCwo = async (req, res) => {
   }
 };
 
+const getLastCwoNumber = async (req, res) => {
+  try {
+    const { mwo_id } = req.query;
+
+    if (!mwo_id) {
+      return res.status(400).json({ message: "MWO ID is required" });
+    }
+
+    const lastCwo = await ChildWorkorder.findOne({
+      where: { mwo_id },
+      order: [["created_at", "DESC"]],
+      attributes: ["cwo_number"],
+      raw: true,
+    });
+
+    if (lastCwo) {
+      res.status(200).json({ lastCwoNumber: lastCwo.cwo_number });
+    } else {
+      res.status(200).json({ lastCwoNumber: null });
+    }
+  } catch (error) {
+    console.error("Error fetching last CWO number:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createMotherWorkorder,
   findWorkorder,
@@ -866,4 +895,5 @@ module.exports = {
   rejectCwo,
   invoiceCwo,
   checkChildWorkorderExists,
+  getLastCwoNumber,
 };

@@ -3,6 +3,7 @@ const { ServiceRecord } = require("../models/wow_cwo_service_record");
 const { MotherWorkorder } = require("../models/wow_mother_workorder");
 const { ExpenseRecord } = require("../models/wow_expense_record");
 const { ApprovalMatrix } = require("../models/wow_approval_matrix");
+const { ChildWorkorder } = require("../models/wow_child_workorder");
 
 const { Sequelize, Op } = require("sequelize");
 
@@ -93,6 +94,7 @@ const addExpense = async (req, res) => {
         invoice_number,
         invoice_date, // Ensure invoice date is included
         remarks,
+        category, // Add category field
         created_by,
         created_at,
         expense_approver1_email,
@@ -113,6 +115,7 @@ const addExpense = async (req, res) => {
         !invoice_number ||
         !invoice_date || // Ensure invoice date is included
         !remarks ||
+        !category || // Add category validation
         !created_by ||
         !created_at ||
         !expense_approver1_email ||
@@ -223,6 +226,113 @@ const updateInvoiceStatus = async (req, res) => {
   }
 };
 
+const validateBudget = async (req, res) => {
+  try {
+    const { expenses, cwo_id, budgeted_service_cost, misc_budget } = req.body;
+
+    if (!expenses || !Array.isArray(expenses) || expenses.length === 0) {
+      return res.status(400).json({
+        valid: false,
+        message: "No expenses provided for validation",
+      });
+    }
+
+    // Get existing expenses for this CWO
+    const existingExpenses = await ExpenseRecord.findAll({
+      where: { cwo_id: cwo_id.toString() },
+      raw: true,
+    });
+
+    // Calculate current totals by category
+    const currentBudgetedTotal = existingExpenses
+      .filter((expense) => expense.category === "budgeted")
+      .reduce(
+        (sum, expense) => sum + parseFloat(expense.expense_amount || 0),
+        0
+      );
+
+    const currentExpenseTotal = existingExpenses
+      .filter((expense) => expense.category === "expense")
+      .reduce(
+        (sum, expense) => sum + parseFloat(expense.expense_amount || 0),
+        0
+      );
+
+    // Calculate new totals from submitted expenses
+    const newBudgetedTotal = expenses
+      .filter((expense) => expense.category === "budgeted")
+      .reduce(
+        (sum, expense) => sum + parseFloat(expense.expense_amount || 0),
+        0
+      );
+
+    const newExpenseTotal = expenses
+      .filter((expense) => expense.category === "expense")
+      .reduce(
+        (sum, expense) => sum + parseFloat(expense.expense_amount || 0),
+        0
+      );
+
+    // Calculate final totals
+    const finalBudgetedTotal = currentBudgetedTotal + newBudgetedTotal;
+    const finalExpenseTotal = currentExpenseTotal + newExpenseTotal;
+
+    // Validate budgeted expenses against budgeted service cost
+    if (finalBudgetedTotal > budgeted_service_cost) {
+      return res.status(400).json({
+        valid: false,
+        message: `Budgeted expenses (₹${finalBudgetedTotal.toFixed(
+          2
+        )}) exceed the budgeted service cost (₹${budgeted_service_cost.toFixed(
+          2
+        )}). Excess: ₹${(finalBudgetedTotal - budgeted_service_cost).toFixed(
+          2
+        )}`,
+      });
+    }
+
+    // Validate expense items against MISC budget
+    if (finalExpenseTotal > misc_budget) {
+      return res.status(400).json({
+        valid: false,
+        message: `Expense items (₹${finalExpenseTotal.toFixed(
+          2
+        )}) exceed the MISC budget (₹${misc_budget.toFixed(2)}). Excess: ₹${(
+          finalExpenseTotal - misc_budget
+        ).toFixed(2)}`,
+      });
+    }
+
+    res.status(200).json({
+      valid: true,
+      message: "Budget validation passed",
+      summary: {
+        budgeted: {
+          current: currentBudgetedTotal,
+          new: newBudgetedTotal,
+          total: finalBudgetedTotal,
+          limit: budgeted_service_cost,
+          remaining: budgeted_service_cost - finalBudgetedTotal,
+        },
+        expense: {
+          current: currentExpenseTotal,
+          new: newExpenseTotal,
+          total: finalExpenseTotal,
+          limit: misc_budget,
+          remaining: misc_budget - finalExpenseTotal,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error validating budget:", error);
+    res.status(500).json({
+      valid: false,
+      message: "Internal server error during budget validation",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   findMaterialBudgets,
   findServiceBudgets,
@@ -232,4 +342,5 @@ module.exports = {
   getAllExpenses,
   findInvoiceExpenses,
   updateInvoiceStatus,
+  validateBudget,
 };

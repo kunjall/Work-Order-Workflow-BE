@@ -23,7 +23,6 @@ const MotherWorkorder = sequelize.define(
     },
     mwo_number: {
       type: DataTypes.STRING,
-      primaryKey: true,
       allowNull: false,
     },
     workorder_type: {

@@ -122,4 +122,10 @@ router.patch(
   workorderController.rejectCwo
 );
 
+router.get(
+  "/workorder/get-last-cwo-number",
+  authenticateUser,
+  workorderController.getLastCwoNumber
+);
+
 module.exports = router;

@@ -103,6 +103,10 @@ const ExpenseRecord = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    category: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "wow-expense-record",

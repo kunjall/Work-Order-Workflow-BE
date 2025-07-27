@@ -51,4 +51,10 @@ router.patch(
   invoiceController.updateInvoiceStatus
 );
 
+router.post(
+  "/invoice/validate-budget",
+  authenticateUser,
+  invoiceController.validateBudget
+);
+
 module.exports = router;
