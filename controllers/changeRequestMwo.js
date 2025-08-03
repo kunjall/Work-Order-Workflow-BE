@@ -221,8 +221,8 @@ exports.createMwoChangeRequest = async (req, res) => {
       }
     }
 
-    // Set initial status to "Pending for approval X" (first approver)
-    const initialStatus = "Pending for approval X";
+    // Set initial status to "Pending for approval deployment head" (first approver)
+    const initialStatus = "Pending for approval deployment head";
 
     // Create the change request with the 3-approver workflow structure
     const newChangeRequest = await CrMwo.create(
@@ -416,17 +416,17 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
     }
 
     // Determine the approver level based on the current status
-    // First approver: status is "Pending for approval X"
+    // First approver: status is "Pending for approval deployment head"
     const isFirstApprover =
-      changeRequest.cr_status === "Pending for approval X";
+      changeRequest.cr_status === "Pending for approval deployment head";
 
-    // Second approver: status is "Pending for approval Y"
+    // Second approver: status is "Pending for approval acquisition head"
     const isSecondApprover =
-      changeRequest.cr_status === "Pending for approval Y";
+      changeRequest.cr_status === "Pending for approval acquisition head";
 
-    // Third approver: status is "Pending for approval Z"
+    // Third approver: status is "Pending for approval head operations"
     const isThirdApprover =
-      changeRequest.cr_status === "Pending for approval Z";
+      changeRequest.cr_status === "Pending for approval head operations";
 
     let newStatus;
     let updateData = {
@@ -446,7 +446,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
           });
         }
 
-        newStatus = "Pending for approval Y";
+        newStatus = "Pending for approval acquisition head";
         updateData.cr_approver2_email = cr_approver2_email;
         updateData.cr_approver2_name = cr_approver2_name;
       } else if (isSecondApprover) {
@@ -461,7 +461,7 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
           });
         }
 
-        newStatus = "Pending for approval Z";
+        newStatus = "Pending for approval head operations";
         updateData.cr_approver3_email = cr_approver3_email;
         updateData.cr_approver3_name = cr_approver3_name;
       } else if (isThirdApprover) {
@@ -755,17 +755,52 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
         totalServiceCost += servicePrice;
       }
 
-      // Update the MWO with new total costs
+      // Calculate balance costs by subtracting used amounts from CWOs
+      let balMaterialCost = totalMaterialCost;
+      let balServiceCost = totalServiceCost;
+
+      // Get all CWOs for this MWO to calculate used costs
+      const allCwos = await ChildWorkorder.findAll({
+        where: { mwo_id: mwo_id.toString() },
+        transaction: t,
+      });
+
+      let totalUsedMaterialCost = 0;
+      let totalUsedServiceCost = 0;
+
+      for (const cwo of allCwos) {
+        const cwoMaterialCost = Number(cwo.total_material_cost || 0);
+        const cwoServiceCost = Number(cwo.total_service_cost || 0);
+        totalUsedMaterialCost += cwoMaterialCost;
+        totalUsedServiceCost += cwoServiceCost;
+      }
+
+      balMaterialCost = Math.max(0, totalMaterialCost - totalUsedMaterialCost);
+      balServiceCost = Math.max(0, totalServiceCost - totalUsedServiceCost);
+
+      // Update the MWO with new total costs and balance costs
       try {
         const updateResult = await MotherWorkorder.update(
           {
             total_material_cost: totalMaterialCost.toFixed(2),
             total_service_cost: totalServiceCost.toFixed(2),
+            bal_material_cost: balMaterialCost.toFixed(2),
+            bal_service_cost: balServiceCost.toFixed(2),
           },
           {
             where: { mwo_id: mwo_id.toString() },
             transaction: t,
           }
+        );
+
+        console.log(
+          `Updated MWO ${mwo_id} costs: Material Total=${totalMaterialCost.toFixed(
+            2
+          )}, Material Balance=${balMaterialCost.toFixed(
+            2
+          )}, Service Total=${totalServiceCost.toFixed(
+            2
+          )}, Service Balance=${balServiceCost.toFixed(2)}`
         );
       } catch (error) {
         console.error(`Error updating MWO ${mwo_id} totals:`, error);

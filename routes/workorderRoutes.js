@@ -128,4 +128,24 @@ router.get(
   workorderController.getLastCwoNumber
 );
 
+// MWO Attachment routes
+router.get(
+  "/workorder/mwo-attachments",
+  authenticateUser,
+  workorderController.getMwoAttachments
+);
+
+router.get(
+  "/workorder/mwo-attachments/:attachmentId/download",
+  authenticateUser,
+  workorderController.downloadMwoAttachment
+);
+
+router.patch(
+  "/workorder/update-status-with-attachments",
+  authenticateUser,
+  workorderController.upload.array("attachments", 5),
+  workorderController.updateMwoStatusWithAttachments
+);
+
 module.exports = router;

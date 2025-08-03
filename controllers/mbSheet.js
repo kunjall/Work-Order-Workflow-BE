@@ -7,8 +7,35 @@ const { InventoryStock } = require("../models/wow_inventory_stock.js");
 const { MbSheet } = require("../models/wow_mb_sheet.js");
 const { MbService } = require("../models/wow_mb_service_record.js");
 const { MbMaterial } = require("../models/wow_mb_material_record.js");
+const { MbAttachment } = require("../models/wow_mb_attachment.js");
 const { sequelize } = require("../utils/db");
 const { Op } = require("sequelize");
+const multer = require("multer");
+const path = require("path");
+
+// Configure multer for file uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit per file
+    files: 5, // Maximum 5 files
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow common file types
+    const allowedTypes = /jpeg|jpg|png|pdf|doc|docx|xls|xlsx|xlsb/;
+    const extname = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error("Only jpeg, jpg, png, pdf, doc, xlsx files are allowed!"));
+    }
+  },
+});
 
 const findMaterialLocatorStock = async (req, res) => {
   try {
@@ -66,14 +93,40 @@ const createMB = async (req, res) => {
     requested_at,
     cwo_id,
     cwo_number,
-    attachment_url,
-    materialItems,
-    serviceItems,
   } = req.body;
+
+  // Parse JSON strings from FormData
+  let materialItems = [];
+  let serviceItems = [];
+
+  try {
+    materialItems = req.body.materialItems
+      ? JSON.parse(req.body.materialItems)
+      : [];
+    serviceItems = req.body.serviceItems
+      ? JSON.parse(req.body.serviceItems)
+      : [];
+  } catch (error) {
+    return res.status(400).json({ error: "Invalid JSON format for items" });
+  }
 
   const transaction = await sequelize.transaction();
 
   try {
+    // Check if files are uploaded
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        error: "At least one attachment is required to submit MB",
+      });
+    }
+
+    // Validate file count (max 5 files)
+    if (req.files.length > 5) {
+      return res.status(400).json({
+        error: "Maximum 5 files are allowed",
+      });
+    }
+
     const createdMB = await MbSheet.create(
       {
         vendor_id,
@@ -93,10 +146,26 @@ const createMB = async (req, res) => {
         requested_at,
         cwo_id,
         cwo_number,
-        attachment_url,
+        attachment_url: null, // Remove attachment_url as we're using the new table
       },
       { transaction }
     );
+
+    // Store attachments in the new attachment table
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        await MbAttachment.create(
+          {
+            mb_id: createdMB.mb_id,
+            attachment: file.buffer,
+            file_name: file.originalname,
+            file_type: file.mimetype,
+            file_size: file.size,
+          },
+          { transaction }
+        );
+      }
+    }
 
     if (materialItems && materialItems.length > 0) {
       for (const material of materialItems) {
@@ -141,9 +210,11 @@ const createMB = async (req, res) => {
     }
 
     await transaction.commit();
-    res
-      .status(201)
-      .json({ message: "MB and related data created successfully" });
+    res.status(201).json({
+      message: "MB and related data created successfully",
+      mb_id: createdMB.mb_id,
+      attachments_count: req.files.length,
+    });
   } catch (error) {
     await transaction.rollback();
     console.error("Transaction failed:", error);
@@ -355,6 +426,54 @@ const updateApprovalMb = async (req, res) => {
   }
 };
 
+// Function to get attachments for a specific MB
+const getMBAttachments = async (req, res) => {
+  try {
+    const { mb_id } = req.query;
+
+    if (!mb_id) {
+      return res.status(400).json({ message: "MB ID is required" });
+    }
+
+    const attachments = await MbAttachment.findAll({
+      where: { mb_id },
+      attributes: ["attachment_id", "file_name", "file_type", "file_size"],
+    });
+
+    res.status(200).json(attachments);
+  } catch (error) {
+    console.error("Error fetching MB attachments:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Function to download a specific attachment
+const downloadMBAttachment = async (req, res) => {
+  try {
+    const { attachment_id } = req.params;
+
+    const attachment = await MbAttachment.findOne({
+      where: { attachment_id },
+    });
+
+    if (!attachment) {
+      return res.status(404).json({ message: "Attachment not found" });
+    }
+
+    res.setHeader("Content-Type", attachment.file_type);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${attachment.file_name}"`
+    );
+    res.setHeader("Content-Length", attachment.file_size);
+
+    res.send(attachment.attachment);
+  } catch (error) {
+    console.error("Error downloading attachment:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   findMaterialLocatorStock,
   findChildMaterialStock,
@@ -366,4 +485,7 @@ module.exports = {
   createMB,
   findMB,
   getMBActions,
+  getMBAttachments,
+  downloadMBAttachment,
+  upload, // Export the multer upload middleware
 };

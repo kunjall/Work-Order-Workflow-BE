@@ -6,6 +6,7 @@ const { ServiceRecord } = require("../models/wow_cwo_service_record");
 const { ChildWorkorder } = require("../models/wow_child_workorder");
 const { MotherMaterialRecord } = require("../models/wow_mwo_material_record");
 const { MotherServiceRecord } = require("../models/wow_mwo_service_record");
+const { MotherWorkorder } = require("../models/wow_mother_workorder");
 const { Op } = require("sequelize");
 
 // Create a new change request
@@ -253,8 +254,8 @@ exports.createChangeRequest = async (req, res) => {
       }
     }
 
-    // Set initial status to "Pending for approval X"
-    const initialStatus = `Pending for approval X`;
+    // Set initial status to "Pending for approval deployment head"
+    const initialStatus = `Pending for approval deployment head`;
 
     // Create the change request
     const newChangeRequest = await CrCwo.create(
@@ -449,13 +450,13 @@ exports.updateChangeRequestStatus = async (req, res) => {
     }
 
     // Determine if this is the first or second approver based on the current status
-    // First approver: status is "Pending for approval X"
+    // First approver: status is "Pending for approval deployment head"
     const isFirstApprover =
-      changeRequest.cr_status === "Pending for approval X";
+      changeRequest.cr_status === "Pending for approval deployment head";
 
-    // Second approver: status is "Pending for approval Y"
+    // Second approver: status is "Pending for approval acquisition head"
     const isSecondApprover =
-      changeRequest.cr_status === "Pending for approval Y";
+      changeRequest.cr_status === "Pending for approval acquisition head";
 
     let newStatus;
     let updateData = {
@@ -475,7 +476,7 @@ exports.updateChangeRequestStatus = async (req, res) => {
           });
         }
 
-        newStatus = `Pending for approval Y`;
+        newStatus = `Pending for approval acquisition head`;
         updateData.cr_approver2_email = cr_approver2_email;
         updateData.cr_approver2_name = cr_approver2_name;
       } else if (isSecondApprover) {
@@ -856,6 +857,77 @@ exports.updateChangeRequestStatus = async (req, res) => {
         }
       } catch (error) {
         console.error(`Error updating MWO service balances:`, error);
+        throw error; // Re-throw to trigger transaction rollback
+      }
+
+      // Update MWO balance costs
+      try {
+        // Calculate total costs for the MWO
+        let mwoTotalMaterialCost = 0;
+        let mwoTotalServiceCost = 0;
+
+        // Calculate total material cost from MWO materials
+        const mwoMaterials = await MotherMaterialRecord.findAll({
+          where: { mwo_id: mwo_id.toString() },
+          transaction: t,
+        });
+
+        for (const material of mwoMaterials) {
+          const materialPrice = Number(material.material_price || 0);
+          mwoTotalMaterialCost += materialPrice;
+        }
+
+        // Calculate total service cost from MWO services
+        const mwoServices = await MotherServiceRecord.findAll({
+          where: { mwo_id: mwo_id.toString() },
+          transaction: t,
+        });
+
+        for (const service of mwoServices) {
+          const servicePrice = Number(service.service_price || 0);
+          mwoTotalServiceCost += servicePrice;
+        }
+
+        // Calculate used costs from all CWOs
+        let totalUsedMaterialCost = 0;
+        let totalUsedServiceCost = 0;
+
+        for (const cwo of allCwos) {
+          const cwoMaterialCost = Number(cwo.total_material_cost || 0);
+          const cwoServiceCost = Number(cwo.total_service_cost || 0);
+          totalUsedMaterialCost += cwoMaterialCost;
+          totalUsedServiceCost += cwoServiceCost;
+        }
+
+        // Calculate balance costs
+        const balMaterialCost = Math.max(
+          0,
+          mwoTotalMaterialCost - totalUsedMaterialCost
+        );
+        const balServiceCost = Math.max(
+          0,
+          mwoTotalServiceCost - totalUsedServiceCost
+        );
+
+        // Update MWO balance costs
+        await MotherWorkorder.update(
+          {
+            bal_material_cost: balMaterialCost.toFixed(2),
+            bal_service_cost: balServiceCost.toFixed(2),
+          },
+          {
+            where: { mwo_id: mwo_id.toString() },
+            transaction: t,
+          }
+        );
+
+        console.log(
+          `Updated MWO ${mwo_id} balance costs: Material Balance=${balMaterialCost.toFixed(
+            2
+          )}, Service Balance=${balServiceCost.toFixed(2)}`
+        );
+      } catch (error) {
+        console.error(`Error updating MWO balance costs:`, error);
         throw error; // Re-throw to trigger transaction rollback
       }
     }

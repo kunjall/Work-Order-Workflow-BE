@@ -4,8 +4,11 @@ const { ServiceRecord } = require("../models/wow_cwo_service_record");
 const { ChildWorkorder } = require("../models/wow_child_workorder");
 const { MotherMaterialRecord } = require("../models/wow_mwo_material_record");
 const { MotherServiceRecord } = require("../models/wow_mwo_service_record");
+const { MwoAttachment } = require("../models/wow_mwo_attachment");
 const { sequelize } = require("../utils/db");
 const { Op, where } = require("sequelize");
+const multer = require("multer");
+const path = require("path");
 
 const createMotherWorkorder = async (req, res) => {
   const transaction = await sequelize.transaction();
@@ -215,7 +218,7 @@ const createChildWorkorder = async (req, res) => {
     route_name,
     vendor_id,
     vendor_name,
-    vendor_route_allocation,
+    // vendor_route_allocation,
     total_service_cost,
     internal_manager,
     execution_city,
@@ -245,7 +248,7 @@ const createChildWorkorder = async (req, res) => {
         mwo_number,
         vendor_id,
         vendor_name,
-        vendor_route_allocation,
+        // vendor_route_allocation,
         total_service_cost,
         internal_manager,
         route_name,
@@ -874,6 +877,159 @@ const getLastCwoNumber = async (req, res) => {
   }
 };
 
+// Configure multer for file uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 5, // Maximum 5 files
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
+    ];
+
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(
+        new Error(
+          "Invalid file type. Only JPEG, PNG, PDF, DOC, DOCX, XLS, XLSX, XLSB files are allowed."
+        )
+      );
+    }
+  },
+});
+
+// Get MWO attachments
+const getMwoAttachments = async (req, res) => {
+  try {
+    const { mwo_id } = req.query;
+
+    if (!mwo_id) {
+      return res.status(400).json({ message: "MWO ID is required" });
+    }
+
+    const attachments = await MwoAttachment.findAll({
+      where: { mwo_id },
+      attributes: ["attachment_id", "file_name", "file_type", "file_size"],
+    });
+
+    res.status(200).json(attachments);
+  } catch (error) {
+    console.error("Error fetching MWO attachments:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Download MWO attachment
+const downloadMwoAttachment = async (req, res) => {
+  try {
+    const { attachmentId } = req.params;
+
+    const attachment = await MwoAttachment.findOne({
+      where: { attachment_id: attachmentId },
+    });
+
+    if (!attachment) {
+      return res.status(404).json({ message: "Attachment not found" });
+    }
+
+    res.setHeader(
+      "Content-Type",
+      attachment.file_type || "application/octet-stream"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${attachment.file_name}"`
+    );
+    res.send(attachment.attachment);
+  } catch (error) {
+    console.error("Error downloading MWO attachment:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Update MWO status with file attachments
+const updateMwoStatusWithAttachments = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const {
+      mwo_id,
+      mwo_status,
+      approved_at,
+      approved_by,
+      approver_comments,
+      mwo_approver1_email,
+      mwo_approver1_name,
+      mwo_approver2_email,
+      mwo_approver2_name,
+    } = req.body;
+
+    if (!mwo_id) {
+      return res.status(400).json({ message: "MWO ID is required" });
+    }
+
+    // Update MWO status
+    const updateData = {};
+    if (mwo_status) updateData.mwo_status = mwo_status;
+    if (approved_at) updateData.approved_at = approved_at;
+    if (approved_by) updateData.approved_by = approved_by;
+    if (approver_comments) updateData.approver_comments = approver_comments;
+    if (mwo_approver1_email)
+      updateData.mwo_approver1_email = mwo_approver1_email;
+    if (mwo_approver1_name) updateData.mwo_approver1_name = mwo_approver1_name;
+    if (mwo_approver2_email)
+      updateData.mwo_approver2_email = mwo_approver2_email;
+    if (mwo_approver2_name) updateData.mwo_approver2_name = mwo_approver2_name;
+
+    const [updatedRows] = await MotherWorkorder.update(updateData, {
+      where: { mwo_id },
+      transaction,
+    });
+
+    if (updatedRows === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "MWO record not found" });
+    }
+
+    // Handle file attachments if present
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        await MwoAttachment.create(
+          {
+            mwo_id,
+            attachment: file.buffer,
+            file_name: file.originalname,
+            file_type: file.mimetype,
+            file_size: file.size,
+          },
+          { transaction }
+        );
+      }
+    }
+
+    await transaction.commit();
+    res
+      .status(200)
+      .json({ message: "MWO status updated successfully with attachments" });
+  } catch (error) {
+    await transaction.rollback();
+    console.error("Error updating MWO status with attachments:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   createMotherWorkorder,
   findWorkorder,
@@ -896,4 +1052,8 @@ module.exports = {
   invoiceCwo,
   checkChildWorkorderExists,
   getLastCwoNumber,
+  upload,
+  getMwoAttachments,
+  downloadMwoAttachment,
+  updateMwoStatusWithAttachments,
 };
