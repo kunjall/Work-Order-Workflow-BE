@@ -34,7 +34,7 @@ const getAllMaterials = async (req, res) => {
   }
 };
 
-// Get material by ID
+// Get material by ID (entry_id)
 const getMaterialById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -59,16 +59,20 @@ const createMaterial = async (req, res) => {
     console.log(req.body);
     const { item_id, item_name, item_uom, item_company, item_rate } = req.body;
 
-    // Check if material already exists
-    const existingMaterial = await MaterialsMaster.findByPk(item_id, {
+    // Check if material already exists for the same company
+    const existingMaterial = await MaterialsMaster.findOne({
+      where: {
+        item_id,
+        item_company,
+      },
       transaction,
     });
 
     if (existingMaterial) {
       await transaction.rollback();
-      return res
-        .status(400)
-        .json({ message: "Material with this ID already exists" });
+      return res.status(400).json({
+        message: "Material with this ID already exists for this company",
+      });
     }
 
     // Create material in material master
@@ -147,8 +151,16 @@ const updateMaterial = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const { id } = req.params;
+    const { id } = req.params; // This is entry_id
     const { item_name, item_uom, item_company, item_rate } = req.body;
+
+    // Get the material first to get the item_id
+    const material = await MaterialsMaster.findByPk(id, { transaction });
+
+    if (!material) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Material not found" });
+    }
 
     // Update material in material master
     const [updated] = await MaterialsMaster.update(
@@ -159,7 +171,7 @@ const updateMaterial = async (req, res) => {
         item_rate,
       },
       {
-        where: { item_id: id },
+        where: { entry_id: id },
         transaction,
       }
     );
@@ -178,7 +190,7 @@ const updateMaterial = async (req, res) => {
         material_rate: item_rate,
       },
       {
-        where: { material_id: id },
+        where: { material_id: material.item_id },
         transaction,
       }
     );
@@ -197,11 +209,19 @@ const deleteMaterial = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const { id } = req.params;
+    const { id } = req.params; // This is entry_id
+
+    // Get the material first to get the item_id
+    const material = await MaterialsMaster.findByPk(id, { transaction });
+
+    if (!material) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Material not found" });
+    }
 
     // Delete from material master
     const deleted = await MaterialsMaster.destroy({
-      where: { item_id: id },
+      where: { entry_id: id },
       transaction,
     });
 
@@ -212,13 +232,13 @@ const deleteMaterial = async (req, res) => {
 
     // Delete from inventory stock
     await InventoryStock.destroy({
-      where: { material_id: id },
+      where: { material_id: material.item_id },
       transaction,
     });
 
     // Delete from locator stock
     await LocatorStock.destroy({
-      where: { material_id: id },
+      where: { material_id: material.item_id },
       transaction,
     });
 

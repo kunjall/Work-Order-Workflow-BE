@@ -15,9 +15,10 @@ const MaterialsMaster = sequelize.define(
   "MaterialsMaster",
   {
     entry_id: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
       primaryKey: true,
+      allowNull: false,
     },
     item_id: {
       type: DataTypes.STRING,
