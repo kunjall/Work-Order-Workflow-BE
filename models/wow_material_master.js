@@ -14,10 +14,14 @@ const sequelize = new Sequelize(
 const MaterialsMaster = sequelize.define(
   "MaterialsMaster",
   {
-    item_id: {
+    entry_id: {
       type: DataTypes.STRING,
       allowNull: false,
       primaryKey: true,
+    },
+    item_id: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     item_name: {
       type: DataTypes.STRING,

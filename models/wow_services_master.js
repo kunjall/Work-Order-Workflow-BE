@@ -14,10 +14,14 @@ const sequelize = new Sequelize(
 const ServicesMaster = sequelize.define(
   "ServicesMaster",
   {
-    service_id: {
+    entry_id: {
       type: DataTypes.STRING,
       allowNull: false,
       primaryKey: true,
+    },
+    service_id: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     service_description: {
       type: DataTypes.STRING,

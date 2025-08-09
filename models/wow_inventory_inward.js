@@ -23,7 +23,7 @@ const InventoryInward = sequelize.define(
     },
     customer_dc_number: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       field: "customer_dc_number",
     },
     customer_id: {
