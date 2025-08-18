@@ -295,7 +295,8 @@ const createService = async (req, res) => {
     } = req.body;
 
     // Check if service already exists
-    const existingService = await ServicesMaster.findByPk(service_id, {
+    const existingService = await ServicesMaster.findOne({
+      where: { service_id },
       transaction,
     });
 
