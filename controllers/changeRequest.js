@@ -30,12 +30,15 @@ exports.createChangeRequest = async (req, res) => {
       serviceItems,
     } = req.body;
 
-    // Check if there's an existing change request that's not approved
+    // Check if there's an existing change request that's pending (not approved or rejected)
     const existingCR = await CrCwo.findOne({
       where: {
         cwo_id: cwo_id.toString(),
         cr_status: {
-          [Op.ne]: "Approved",
+          [Op.and]: [
+            { [Op.ne]: "Approved" },
+            { [Op.notLike]: "Rejected%" }, // Exclude any status that starts with "Rejected"
+          ],
         },
       },
     });
