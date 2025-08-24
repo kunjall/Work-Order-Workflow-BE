@@ -100,6 +100,7 @@ const addExpense = async (req, res) => {
         expense_approver1_email,
         expense_approver1_name,
         route_name,
+        gst_amount, // Add GST amount field
       } = expense;
 
       if (

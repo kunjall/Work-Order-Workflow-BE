@@ -35,6 +35,11 @@ const ExpenseRecord = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+
+    gst_amount: {
+      type: DataTypes.NUMBER,
+      allowNull: true,
+    },
     expense_amount: {
       type: DataTypes.NUMBER,
       allowNull: true,
