@@ -64,8 +64,13 @@ const enterInventory = async (req, res) => {
     );
 
     for (const material of materials) {
-      const { material_id, material_wo_qty, material_desc, material_uom } =
-        material;
+      const {
+        material_id,
+        material_wo_qty,
+        material_desc,
+        material_uom,
+        supplier_name,
+      } = material;
 
       await MaterialInventory.create(
         {
@@ -75,6 +80,8 @@ const enterInventory = async (req, res) => {
           material_desc,
           material_uom,
           material_wo_qty,
+          supplier_name,
+          customer_name: customer_name,
           inventory_id: inventory.inventory_id,
         },
         { transaction }
@@ -270,13 +277,54 @@ const updateApprovedDetails = async (req, res) => {
 
     if (material_stock && material_stock.length > 0) {
       for (const item of material_stock) {
-        await InventoryStock.increment(
-          { material_stock: item.material_wo_qty },
-          {
-            where: { material_id: item.material_id, warehouse_id },
+        // Check if the material-warehouse-company combination exists
+        const existingStock = await InventoryStock.findOne({
+          where: {
+            material_id: item.material_id,
+            warehouse_id,
+            company: item.company || null,
+          },
+          transaction,
+        });
+
+        if (existingStock) {
+          // If exists, increment the stock
+          await InventoryStock.increment(
+            { material_stock: item.material_wo_qty },
+            {
+              where: {
+                material_id: item.material_id,
+                warehouse_id,
+                company: item.company || null,
+              },
+              transaction,
+            }
+          );
+        } else {
+          // If doesn't exist, create a new row
+          // Get the next ID
+          const lastRecord = await InventoryStock.findOne({
+            order: [["id", "DESC"]],
+            attributes: ["id"],
             transaction,
-          }
-        );
+          });
+
+          const nextId = lastRecord ? lastRecord.id + 1 : 1;
+
+          await InventoryStock.create(
+            {
+              id: nextId,
+              material_id: item.material_id,
+              material_stock: item.material_wo_qty,
+              material_desc: item.material_desc,
+              material_uom: item.material_uom,
+              company: item.company || null,
+              material_rate: item.material_rate || null,
+              warehouse_id: warehouse_id,
+            },
+            { transaction }
+          );
+        }
       }
     }
     await transaction.commit();

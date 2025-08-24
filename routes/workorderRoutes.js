@@ -15,6 +15,12 @@ router.get(
 );
 
 router.get(
+  "/workorder/find-workorder-acq",
+  authenticateUser,
+  workorderController.findWorkorderAcq
+);
+
+router.get(
   "/workorder/find-all-workorder",
   authenticateUser,
   workorderController.findAllWorkorder
@@ -146,6 +152,12 @@ router.patch(
   authenticateUser,
   workorderController.upload.array("attachments", 5),
   workorderController.updateMwoStatusWithAttachments
+);
+
+router.patch(
+  "/workorder/update-service-rates",
+  authenticateUser,
+  workorderController.updateMwoServiceRates
 );
 
 module.exports = router;

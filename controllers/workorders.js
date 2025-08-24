@@ -160,6 +160,18 @@ const findWorkorder = async (req, res) => {
   }
 };
 
+const findWorkorderAcq = async (req, res) => {
+  try {
+    const foundWorkorder = await MotherWorkorder.findAll({
+      where: { mwo_status: "Pending with Acq head" },
+    });
+    res.json(foundWorkorder);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 const findAllWorkorder = async (req, res) => {
   try {
     const foundWorkorder = await MotherWorkorder.findAll({});
@@ -1030,6 +1042,77 @@ const updateMwoStatusWithAttachments = async (req, res) => {
   }
 };
 
+// Update service rates for MWO (OPs head functionality)
+const updateMwoServiceRates = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const { mwo_id, serviceUpdates } = req.body;
+
+    if (!mwo_id || !serviceUpdates || !Array.isArray(serviceUpdates)) {
+      return res.status(400).json({
+        message: "MWO ID and service updates array are required",
+      });
+    }
+
+    // Update each service record
+    for (const serviceUpdate of serviceUpdates) {
+      const { record_id, service_rate, service_wo_qty } = serviceUpdate;
+
+      if (!record_id || !service_rate || !service_wo_qty) {
+        continue; // Skip invalid entries
+      }
+
+      // Calculate new service price
+      const service_price =
+        parseFloat(service_rate) * parseFloat(service_wo_qty);
+
+      await MotherServiceRecord.update(
+        {
+          service_rate: service_rate,
+          service_price: service_price.toFixed(2),
+        },
+        {
+          where: { record_id, mwo_id: String(mwo_id) },
+          transaction,
+        }
+      );
+    }
+
+    // Recalculate total service cost for the MWO
+    const allServices = await MotherServiceRecord.findAll({
+      where: { mwo_id: String(mwo_id) },
+      transaction,
+    });
+
+    const totalServiceCost = allServices.reduce((total, service) => {
+      return total + parseFloat(service.service_price || 0);
+    }, 0);
+
+    // Update the MWO with new total service cost
+    await MotherWorkorder.update(
+      {
+        total_service_cost: totalServiceCost.toFixed(2),
+        bal_service_cost: totalServiceCost.toFixed(2),
+      },
+      {
+        where: { mwo_id },
+        transaction,
+      }
+    );
+
+    await transaction.commit();
+    res.status(200).json({
+      message: "Service rates updated successfully",
+      totalServiceCost: totalServiceCost.toFixed(2),
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error("Error updating service rates:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   createMotherWorkorder,
   findWorkorder,
@@ -1052,8 +1135,10 @@ module.exports = {
   invoiceCwo,
   checkChildWorkorderExists,
   getLastCwoNumber,
+  findWorkorderAcq,
   upload,
   getMwoAttachments,
   downloadMwoAttachment,
   updateMwoStatusWithAttachments,
+  updateMwoServiceRates,
 };

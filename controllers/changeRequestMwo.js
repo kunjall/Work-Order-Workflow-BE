@@ -305,6 +305,8 @@ exports.getMwoChangeRequests = async (req, res) => {
       cr_status,
       customer_name,
       cr_approver_email,
+      cr_approver2_email,
+      cr_approver3_email,
       created_by,
       mwo_id,
     } = req.query;
@@ -316,9 +318,21 @@ exports.getMwoChangeRequests = async (req, res) => {
     if (mwo_number) whereClause.mwo_number = mwo_number;
     if (cr_status) whereClause.cr_status = cr_status;
     if (customer_name) whereClause.customer_name = customer_name;
-    if (cr_approver_email) whereClause.cr_approver_email = cr_approver_email;
     if (created_by) whereClause.created_by = created_by;
     if (mwo_id) whereClause.mwo_id = mwo_id.toString();
+
+    // Handle approver email filters - support all three levels
+    if (cr_approver_email) whereClause.cr_approver_email = cr_approver_email;
+    if (cr_approver2_email) whereClause.cr_approver2_email = cr_approver2_email;
+    if (cr_approver3_email) whereClause.cr_approver3_email = cr_approver3_email;
+
+    console.log("MWO CR Query filters:", {
+      cr_approver_email,
+      cr_approver2_email,
+      cr_approver3_email,
+      created_by,
+      whereClause,
+    });
 
     // Find change requests based on filters
     const changeRequests = await CrMwo.findAll({
@@ -402,7 +416,17 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
       approver_comments,
       cr_approver2_email,
       cr_approver2_name,
+      cr_approver3_email,
+      cr_approver3_name,
     } = req.body;
+
+    console.log("Update MWO CR Status - Request body:", req.body);
+    console.log("Extracted approver data:", {
+      cr_approver2_email,
+      cr_approver2_name,
+      cr_approver3_email,
+      cr_approver3_name,
+    });
 
     // Find the change request
     const changeRequest = await CrMwo.findByPk(cr_id);

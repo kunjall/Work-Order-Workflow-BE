@@ -11,50 +11,41 @@ const sequelize = new Sequelize(
   }
 );
 
-const MaterialInventory = sequelize.define(
-  "MaterialInventory",
+const Supplier = sequelize.define(
+  "Supplier",
   {
-    record_id: {
+    supplier_id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
     },
-    inventory_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      field: "inventory_id",
-    },
-    customer_dc_number: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    material_id: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    material_desc: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    material_uom: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    material_wo_qty: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     supplier_name: {
       type: DataTypes.STRING,
-      allowNull: true,
     },
-    customer_name: {
+    supplier_state: {
       type: DataTypes.STRING,
-      allowNull: true,
+    },
+    supplier_pincode: {
+      type: DataTypes.STRING,
+    },
+    supplier_address: {
+      type: DataTypes.STRING,
+    },
+    supplier_poc: {
+      type: DataTypes.STRING,
+    },
+    supplier_mobile: {
+      type: DataTypes.STRING,
+    },
+    supplier_email: {
+      type: DataTypes.STRING,
+    },
+    supplier_gstin: {
+      type: DataTypes.STRING,
     },
   },
   {
-    tableName: "wow-material-inventory",
+    tableName: "wow-supplier-master",
     schema: "WOW",
     timestamps: false,
   }
@@ -62,5 +53,5 @@ const MaterialInventory = sequelize.define(
 
 module.exports = {
   sequelize,
-  MaterialInventory,
+  Supplier,
 };

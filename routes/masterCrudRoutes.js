@@ -189,6 +189,37 @@ router.delete(
   masterCrudController.deleteCustomer
 );
 
+// Supplier Master CRUD routes
+router.get(
+  "/master/supplier",
+  authenticateUser,
+  masterCrudController.getAllSuppliers
+);
+
+router.get(
+  "/master/supplier/:id",
+  authenticateUser,
+  masterCrudController.getSupplierById
+);
+
+router.post(
+  "/master/supplier",
+  authenticateUser,
+  masterCrudController.createSupplier
+);
+
+router.put(
+  "/master/supplier/:id",
+  authenticateUser,
+  masterCrudController.updateSupplier
+);
+
+router.delete(
+  "/master/supplier/:id",
+  authenticateUser,
+  masterCrudController.deleteSupplier
+);
+
 // Customer WH Master CRUD routes
 router.get(
   "/master/customerWarehouse",

@@ -7,6 +7,7 @@ const { LocatorMaster } = require("../models/wow_locator_master.js");
 const { LocatorStock } = require("../models/wow_locator_stock.js");
 const { WarehouseMaster } = require("../models/wow_warehouse_master.js");
 const { Customer } = require("../models/wow_customer.js");
+const { Supplier } = require("../models/wow_supplier_master.js");
 const { User } = require("../models/wow_user_login.js");
 const {
   ClientWarehouseMaster,
@@ -87,26 +88,35 @@ const createMaterial = async (req, res) => {
       { transaction }
     );
 
+    // Get all warehouses
+    const warehouses = await WarehouseMaster.findAll({
+      attributes: ["warehouse_id"],
+      transaction,
+    });
+
     const lastRecord = await InventoryStock.findOne({
       order: [["id", "DESC"]],
       attributes: ["id"],
     });
 
-    const nextId = lastRecord ? lastRecord.id + 1 : 1;
+    let nextId = lastRecord ? lastRecord.id + 1 : 1;
 
-    // Add to inventory stock with stock_qty = 0
-    await InventoryStock.create(
-      {
-        id: nextId,
-        material_id: item_id,
-        material_stock: 0,
-        material_desc: item_name,
-        material_uom: item_uom,
-        company: item_company,
-        material_rate: item_rate,
-      },
-      { transaction }
-    );
+    // Add material to each warehouse with material_stock = 0
+    for (const warehouse of warehouses) {
+      await InventoryStock.create(
+        {
+          id: nextId++,
+          material_id: item_id,
+          material_stock: 0,
+          material_desc: item_name,
+          material_uom: item_uom,
+          company: item_company,
+          material_rate: item_rate,
+          warehouse_id: warehouse.warehouse_id,
+        },
+        { transaction }
+      );
+    }
 
     // Get all locator names
     const locators = await LocatorMaster.findAll(
@@ -1144,6 +1154,172 @@ const deleteCustomer = async (req, res) => {
   }
 };
 
+// Supplier Master CRUD operations
+
+// Get all suppliers
+const getAllSuppliers = async (req, res) => {
+  try {
+    const suppliers = await Supplier.findAll();
+    res.status(200).json(suppliers);
+  } catch (error) {
+    console.error("Error fetching suppliers:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Get supplier by ID
+const getSupplierById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const supplier = await Supplier.findByPk(id);
+
+    if (!supplier) {
+      return res.status(404).json({ message: "Supplier not found" });
+    }
+
+    res.status(200).json(supplier);
+  } catch (error) {
+    console.error("Error fetching supplier:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Create new supplier
+const createSupplier = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const {
+      supplier_id,
+      supplier_name,
+      supplier_state,
+      supplier_pincode,
+      supplier_address,
+      supplier_poc,
+      supplier_mobile,
+      supplier_email,
+      supplier_gstin,
+    } = req.body;
+
+    // Check if supplier already exists
+    const existingSupplier = await Supplier.findByPk(supplier_id, {
+      transaction,
+    });
+
+    if (existingSupplier) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .json({ message: "Supplier with this ID already exists" });
+    }
+
+    // Handle empty string for mobile number
+    const mobileValue = supplier_mobile || null;
+
+    // Create supplier
+    const newSupplier = await Supplier.create(
+      {
+        supplier_id,
+        supplier_name,
+        supplier_state,
+        supplier_pincode,
+        supplier_address,
+        supplier_poc,
+        supplier_mobile: mobileValue,
+        supplier_email,
+        supplier_gstin,
+      },
+      { transaction }
+    );
+
+    await transaction.commit();
+    res.status(201).json(newSupplier);
+  } catch (error) {
+    await transaction.rollback();
+    console.error("Error creating supplier:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Update supplier
+const updateSupplier = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const { id } = req.params;
+    const {
+      supplier_name,
+      supplier_state,
+      supplier_pincode,
+      supplier_address,
+      supplier_poc,
+      supplier_mobile,
+      supplier_email,
+      supplier_gstin,
+    } = req.body;
+
+    // Handle empty string for mobile number
+    const mobileValue = supplier_mobile || null;
+
+    // Update supplier
+    const [updated] = await Supplier.update(
+      {
+        supplier_name,
+        supplier_state,
+        supplier_pincode,
+        supplier_address,
+        supplier_poc,
+        supplier_mobile: mobileValue,
+        supplier_email,
+        supplier_gstin,
+      },
+      {
+        where: { supplier_id: id },
+        transaction,
+      }
+    );
+
+    if (updated === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Supplier not found" });
+    }
+
+    await transaction.commit();
+    res.status(200).json({ message: "Supplier updated successfully" });
+  } catch (error) {
+    await transaction.rollback();
+    console.error("Error updating supplier:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Delete supplier
+const deleteSupplier = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const { id } = req.params;
+
+    // Delete supplier
+    const deleted = await Supplier.destroy({
+      where: { supplier_id: id },
+      transaction,
+    });
+
+    if (deleted === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Supplier not found" });
+    }
+
+    await transaction.commit();
+    res.status(200).json({ message: "Supplier deleted successfully" });
+  } catch (error) {
+    await transaction.rollback();
+    console.error("Error deleting supplier:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 const getAllClientWarehouses = async (req, res) => {
   try {
     const clientWarehouses = await ClientWarehouseMaster.findAll();
@@ -1375,6 +1551,11 @@ module.exports = {
   createCustomer,
   updateCustomer,
   deleteCustomer,
+  getAllSuppliers,
+  getSupplierById,
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
   getAllClientWarehouses,
   getClientWarehouseById,
   createClientWarehouse,

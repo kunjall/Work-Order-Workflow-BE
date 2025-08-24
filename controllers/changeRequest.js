@@ -337,27 +337,29 @@ exports.getChangeRequests = async (req, res) => {
       cr_status,
       customer_name,
       cr_approver_email,
+      cr_approver2_email,
+      cr_approver3_email,
       created_by,
       cwo_id,
     } = req.query;
 
-    // Build the where clause based on provided filters
     const whereClause = {};
 
     if (cr_id) whereClause.cr_cwo_id = cr_id;
     if (cwo_number) whereClause.cwo_number = cwo_number;
     if (cr_status) whereClause.cr_status = cr_status;
     if (customer_name) whereClause.customer_name = customer_name;
-    if (cr_approver_email) {
-      whereClause[Op.or] = [
-        { cr_approver_email: cr_approver_email },
-        { cr_approver2_email: cr_approver_email },
-      ];
-    }
     if (created_by) whereClause.created_by = created_by;
     if (cwo_id) whereClause.cwo_id = cwo_id.toString();
 
-    // Find change requests based on filters
+    const emailFilters = [];
+    if (cr_approver_email) emailFilters.push({ cr_approver_email });
+    if (cr_approver2_email) emailFilters.push({ cr_approver2_email });
+    if (cr_approver3_email) emailFilters.push({ cr_approver3_email });
+    if (emailFilters.length > 0) {
+      whereClause[Op.or] = emailFilters;
+    }
+
     const changeRequests = await CrCwo.findAll({
       where: whereClause,
       order: [["cr_cwo_id", "DESC"]],
