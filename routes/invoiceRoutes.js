@@ -57,4 +57,10 @@ router.post(
   invoiceController.validateBudget
 );
 
+router.post(
+  "/invoice/validate-budget-scm",
+  authenticateUser,
+  invoiceController.validateBudgetSCM
+);
+
 module.exports = router;

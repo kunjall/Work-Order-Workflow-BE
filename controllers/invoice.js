@@ -334,6 +334,116 @@ const validateBudget = async (req, res) => {
   }
 };
 
+// SCM Budget validation - returns generic error messages without exposing budget details
+const validateBudgetSCM = async (req, res) => {
+  try {
+    const { expenses, cwo_id } = req.body;
+
+    if (!expenses || !Array.isArray(expenses) || expenses.length === 0) {
+      return res.status(400).json({
+        valid: false,
+        message: "No expenses provided for validation",
+      });
+    }
+
+    // Get the MWO and budget information from the first expense
+    const mwo_id = expenses[0]?.mwo_id;
+    if (!mwo_id) {
+      return res.status(400).json({
+        valid: false,
+        message: "MWO ID is required for validation",
+      });
+    }
+
+    // Get MWO details to fetch budget information
+    const mwoDetails = await MotherWorkorder.findOne({
+      where: { mwo_id: mwo_id.toString() },
+      raw: true,
+    });
+
+    if (!mwoDetails) {
+      return res.status(400).json({
+        valid: false,
+        message: "Work order not found",
+      });
+    }
+
+    // Extract budget values from MWO
+    const budgeted_service_cost = parseFloat(
+      mwoDetails.bal_service_cost?.replace(/[^0-9.]/g, "") || 0
+    );
+    const misc_budget = parseFloat(mwoDetails.overhead_budget || 0);
+
+    // Get existing expenses for this CWO
+    const existingExpenses = await ExpenseRecord.findAll({
+      where: { cwo_id: cwo_id.toString() },
+      raw: true,
+    });
+
+    // Calculate current totals by category
+    const currentBudgetedTotal = existingExpenses
+      .filter((expense) => expense.category === "budgeted")
+      .reduce(
+        (sum, expense) => sum + parseFloat(expense.expense_amount || 0),
+        0
+      );
+
+    const currentExpenseTotal = existingExpenses
+      .filter((expense) => expense.category === "expense")
+      .reduce(
+        (sum, expense) => sum + parseFloat(expense.expense_amount || 0),
+        0
+      );
+
+    // Calculate new totals from submitted expenses
+    const newBudgetedTotal = expenses
+      .filter((expense) => expense.category === "budgeted")
+      .reduce(
+        (sum, expense) => sum + parseFloat(expense.expense_amount || 0),
+        0
+      );
+
+    const newExpenseTotal = expenses
+      .filter((expense) => expense.category === "expense")
+      .reduce(
+        (sum, expense) => sum + parseFloat(expense.expense_amount || 0),
+        0
+      );
+
+    // Calculate final totals
+    const finalBudgetedTotal = currentBudgetedTotal + newBudgetedTotal;
+    const finalExpenseTotal = currentExpenseTotal + newExpenseTotal;
+
+    // Validate budgeted expenses against budgeted service cost
+    if (finalBudgetedTotal > budgeted_service_cost) {
+      return res.status(400).json({
+        valid: false,
+        message: "Invoice exceeds allowed limit for budgeted items",
+      });
+    }
+
+    // Validate expense items against MISC budget
+    if (finalExpenseTotal > misc_budget) {
+      return res.status(400).json({
+        valid: false,
+        message: "Invoice exceeds allowed limit for expense items",
+      });
+    }
+
+    res.status(200).json({
+      valid: true,
+      message: "Budget validation passed",
+    });
+  } catch (error) {
+    console.error("Error validating budget:", error);
+    res.status(500).json({
+      valid: false,
+      message:
+        "Invoice exceeds allowed limit. Please check your entries and try again.",
+    });
+  }
+};
+
 module.exports = {
   findMaterialBudgets,
   findServiceBudgets,
@@ -344,4 +454,5 @@ module.exports = {
   findInvoiceExpenses,
   updateInvoiceStatus,
   validateBudget,
+  validateBudgetSCM,
 };
