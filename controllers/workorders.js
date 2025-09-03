@@ -163,7 +163,11 @@ const findWorkorder = async (req, res) => {
 const findWorkorderAcq = async (req, res) => {
   try {
     const foundWorkorder = await MotherWorkorder.findAll({
-      where: { mwo_status: "Pending with Acq head" },
+      where: {
+        mwo_status: {
+          [Op.or]: ["Pending with Acq head", "Approved"],
+        },
+      },
     });
     res.json(foundWorkorder);
   } catch (error) {
