@@ -148,6 +148,25 @@ const createMotherWorkorder = async (req, res) => {
   }
 };
 
+const checkMwoNumberExists = async (req, res) => {
+  const { mwo_number } = req.query;
+
+  if (!mwo_number) {
+    return res.status(400).json({ message: "MWO Number is required" });
+  }
+
+  try {
+    const existing = await MotherWorkorder.findOne({ where: { mwo_number } });
+
+    return res.status(200).json({ exists: !!existing });
+  } catch (error) {
+    console.error("Error checking MWO number:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
+  }
+};
+
 const findWorkorder = async (req, res) => {
   try {
     const foundWorkorder = await MotherWorkorder.findAll({
@@ -1119,6 +1138,7 @@ const updateMwoServiceRates = async (req, res) => {
 
 module.exports = {
   createMotherWorkorder,
+  checkMwoNumberExists,
   findWorkorder,
   findAllWorkorder,
   findChildMaterials,

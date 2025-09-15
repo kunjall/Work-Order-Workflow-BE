@@ -15,6 +15,12 @@ router.get(
 );
 
 router.get(
+  "/workorder/check-mwo-number",
+  authenticateUser,
+  workorderController.checkMwoNumberExists
+);
+
+router.get(
   "/workorder/find-workorder-acq",
   authenticateUser,
   workorderController.findWorkorderAcq
