@@ -115,7 +115,6 @@ const addExpense = async (req, res) => {
         !unit_price ||
         !invoice_number ||
         !invoice_date || // Ensure invoice date is included
-        !remarks ||
         !category || // Add category validation
         !created_by ||
         !created_at ||
