@@ -57,7 +57,7 @@ const createMaterial = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    console.log(req.body);
+    // console.log(req.body);
     const { item_id, item_name, item_uom, item_company, item_rate } = req.body;
 
     // Check if material already exists for the same company

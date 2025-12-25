@@ -326,13 +326,13 @@ exports.getMwoChangeRequests = async (req, res) => {
     if (cr_approver2_email) whereClause.cr_approver2_email = cr_approver2_email;
     if (cr_approver3_email) whereClause.cr_approver3_email = cr_approver3_email;
 
-    console.log("MWO CR Query filters:", {
-      cr_approver_email,
-      cr_approver2_email,
-      cr_approver3_email,
-      created_by,
-      whereClause,
-    });
+    // console.log("MWO CR Query filters:", {
+    //   cr_approver_email,
+    //   cr_approver2_email,
+    //   cr_approver3_email,
+    //   created_by,
+    //   whereClause,
+    // });
 
     // Find change requests based on filters
     const changeRequests = await CrMwo.findAll({
@@ -420,13 +420,13 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
       cr_approver3_name,
     } = req.body;
 
-    console.log("Update MWO CR Status - Request body:", req.body);
-    console.log("Extracted approver data:", {
-      cr_approver2_email,
-      cr_approver2_name,
-      cr_approver3_email,
-      cr_approver3_name,
-    });
+    // console.log("Update MWO CR Status - Request body:", req.body);
+    // console.log("Extracted approver data:", {
+    //   cr_approver2_email,
+    //   cr_approver2_name,
+    //   cr_approver3_email,
+    //   cr_approver3_name,
+    // });
 
     // Find the change request
     const changeRequest = await CrMwo.findByPk(cr_id);
@@ -817,15 +817,15 @@ exports.updateMwoChangeRequestStatus = async (req, res) => {
           }
         );
 
-        console.log(
-          `Updated MWO ${mwo_id} costs: Material Total=${totalMaterialCost.toFixed(
-            2
-          )}, Material Balance=${balMaterialCost.toFixed(
-            2
-          )}, Service Total=${totalServiceCost.toFixed(
-            2
-          )}, Service Balance=${balServiceCost.toFixed(2)}`
-        );
+        // console.log(
+        //   `Updated MWO ${mwo_id} costs: Material Total=${totalMaterialCost.toFixed(
+        //     2
+        //   )}, Material Balance=${balMaterialCost.toFixed(
+        //     2
+        //   )}, Service Total=${totalServiceCost.toFixed(
+        //     2
+        //   )}, Service Balance=${balServiceCost.toFixed(2)}`
+        // );
       } catch (error) {
         console.error(`Error updating MWO ${mwo_id} totals:`, error);
         throw error; // Re-throw to trigger transaction rollback

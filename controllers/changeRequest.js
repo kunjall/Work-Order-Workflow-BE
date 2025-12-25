@@ -146,12 +146,12 @@ exports.createChangeRequest = async (req, res) => {
 
         // If new quantity is greater than available quantity, return error
         if (Number(material.material_cr_qty) > availableQty) {
-          console.log(
-            `Material ${material.material_id} quantity exceeds available quantity in MWO`
-          );
-          console.log(
-            `MWO qty: ${mwoQty}, Total other CWO qty: ${totalOtherCwoQty}, Available: ${availableQty}, Requested: ${material.material_cr_qty}`
-          );
+          // console.log(
+          //   `Material ${material.material_id} quantity exceeds available quantity in MWO`
+          // );
+          // console.log(
+          //   `MWO qty: ${mwoQty}, Total other CWO qty: ${totalOtherCwoQty}, Available: ${availableQty}, Requested: ${material.material_cr_qty}`
+          // );
 
           await t.rollback();
           return res.status(400).json({
@@ -241,12 +241,12 @@ exports.createChangeRequest = async (req, res) => {
 
         // If new quantity is greater than available quantity, return error
         if (Number(service.service_cr_qty) > availableQty) {
-          console.log(
-            `Service ${service.service_id} quantity exceeds available quantity in MWO`
-          );
-          console.log(
-            `MWO qty: ${mwoQty}, Total other CWO qty: ${totalOtherCwoQty}, Available: ${availableQty}, Requested: ${service.service_cr_qty}`
-          );
+          // console.log(
+          //   `Service ${service.service_id} quantity exceeds available quantity in MWO`
+          // );
+          // console.log(
+          //   `MWO qty: ${mwoQty}, Total other CWO qty: ${totalOtherCwoQty}, Available: ${availableQty}, Requested: ${service.service_cr_qty}`
+          // );
 
           await t.rollback();
           return res.status(400).json({
@@ -804,9 +804,9 @@ exports.updateChangeRequestStatus = async (req, res) => {
             { transaction: t }
           );
 
-          console.log(
-            `Updated MWO material ${mwoMaterial.material_id} balance: Total=${mwoTotalQty}, Used=${totalUsedQty}, New Balance=${newBalQty}`
-          );
+          // console.log(
+          //   `Updated MWO material ${mwoMaterial.material_id} balance: Total=${mwoTotalQty}, Used=${totalUsedQty}, New Balance=${newBalQty}`
+          // );
         }
       } catch (error) {
         console.error(`Error updating MWO material balances:`, error);
@@ -856,9 +856,9 @@ exports.updateChangeRequestStatus = async (req, res) => {
             { transaction: t }
           );
 
-          console.log(
-            `Updated MWO service ${mwoService.service_id} balance: Total=${mwoTotalQty}, Used=${totalUsedQty}, New Balance=${newBalQty}`
-          );
+          // console.log(
+          //   `Updated MWO service ${mwoService.service_id} balance: Total=${mwoTotalQty}, Used=${totalUsedQty}, New Balance=${newBalQty}`
+          // );
         }
       } catch (error) {
         console.error(`Error updating MWO service balances:`, error);
@@ -926,11 +926,11 @@ exports.updateChangeRequestStatus = async (req, res) => {
           }
         );
 
-        console.log(
-          `Updated MWO ${mwo_id} balance costs: Material Balance=${balMaterialCost.toFixed(
-            2
-          )}, Service Balance=${balServiceCost.toFixed(2)}`
-        );
+        // console.log(
+        //   `Updated MWO ${mwo_id} balance costs: Material Balance=${balMaterialCost.toFixed(
+        //     2
+        //   )}, Service Balance=${balServiceCost.toFixed(2)}`
+        // );
       } catch (error) {
         console.error(`Error updating MWO balance costs:`, error);
         throw error; // Re-throw to trigger transaction rollback
